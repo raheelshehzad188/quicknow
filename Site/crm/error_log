@@ -1,0 +1,79 @@
+[17-Aug-2023 23:09:29 America/Boise] PHP Fatal error:  Uncaught mysqli_sql_exception: Access denied for user 'root'@'localhost' (using password: NO) in /home4/arkethu2/public_html/crm/includes/conn.php:2
+Stack trace:
+#0 /home4/arkethu2/public_html/crm/includes/conn.php(2): mysqli_connect('localhost', 'root', Object(SensitiveParameterValue), 'crm')
+#1 /home4/arkethu2/public_html/crm/index.php(2): include_once('/home4/arkethu2...')
+#2 {main}
+  thrown in /home4/arkethu2/public_html/crm/includes/conn.php on line 2
+[17-Aug-2023 23:10:07 America/Boise] PHP Fatal error:  Uncaught mysqli_sql_exception: Access denied for user 'root'@'localhost' (using password: NO) in /home4/arkethu2/public_html/crm/includes/conn.php:2
+Stack trace:
+#0 /home4/arkethu2/public_html/crm/includes/conn.php(2): mysqli_connect('localhost', 'root', Object(SensitiveParameterValue), 'crm')
+#1 /home4/arkethu2/public_html/crm/index.php(5): include_once('/home4/arkethu2...')
+#2 {main}
+  thrown in /home4/arkethu2/public_html/crm/includes/conn.php on line 2
+[17-Aug-2023 23:14:12 America/Boise] PHP Fatal error:  Uncaught mysqli_sql_exception: Access denied for user 'arkethu2_CRM'@'localhost' (using password: NO) in /home4/arkethu2/public_html/crm/includes/conn.php:2
+Stack trace:
+#0 /home4/arkethu2/public_html/crm/includes/conn.php(2): mysqli_connect('localhost', 'arkethu2_CRM', Object(SensitiveParameterValue), 'crm')
+#1 /home4/arkethu2/public_html/crm/index.php(5): include_once('/home4/arkethu2...')
+#2 {main}
+  thrown in /home4/arkethu2/public_html/crm/includes/conn.php on line 2
+[24-Aug-2023 23:16:16 America/Boise] PHP Warning:  include_once(pages/blog_detail.php): failed to open stream: No such file or directory in /home4/arkethu2/public_html/crm/blog_detail.php on line 12
+[24-Aug-2023 23:16:16 America/Boise] PHP Warning:  include_once(): Failed opening 'pages/blog_detail.php' for inclusion (include_path='.:/opt/cpanel/ea-php73/root/usr/share/pear') in /home4/arkethu2/public_html/crm/blog_detail.php on line 12
+[25-Aug-2023 00:10:58 America/Boise] PHP Warning:  mysqli_fetch_assoc() expects parameter 1 to be mysqli_result, bool given in /home4/arkethu2/public_html/crm/ajax_view_blog.php on line 74
+[25-Aug-2023 00:10:58 America/Boise] PHP Warning:  mysqli_fetch_assoc() expects parameter 1 to be mysqli_result, bool given in /home4/arkethu2/public_html/crm/ajax_view_blog.php on line 188
+[25-Aug-2023 00:13:16 America/Boise] PHP Warning:  mysqli_fetch_assoc() expects parameter 1 to be mysqli_result, bool given in /home4/arkethu2/public_html/crm/ajax_view_blog.php on line 92
+[25-Aug-2023 00:14:04 America/Boise] PHP Warning:  mysqli_fetch_assoc() expects parameter 1 to be mysqli_result, bool given in /home4/arkethu2/public_html/crm/ajax_view_blog.php on line 92
+[25-Aug-2023 00:19:55 America/Boise] PHP Warning:  mysqli_fetch_assoc() expects parameter 1 to be mysqli_result, bool given in /home4/arkethu2/public_html/crm/ajax_view_blog.php on line 92
+[25-Aug-2023 00:21:02 America/Boise] PHP Warning:  mysqli_fetch_assoc() expects parameter 1 to be mysqli_result, bool given in /home4/arkethu2/public_html/crm/ajax_view_blog.php on line 92
+[25-Aug-2023 00:22:06 America/Boise] PHP Warning:  mysqli_fetch_assoc() expects parameter 1 to be mysqli_result, bool given in /home4/arkethu2/public_html/crm/ajax_view_blog.php on line 92
+[25-Aug-2023 00:24:37 America/Boise] PHP Warning:  Use of undefined constant DATE_FORMAT - assumed 'DATE_FORMAT' (this will throw an Error in a future version of PHP) in /home4/arkethu2/public_html/crm/ajax_view_blog.php on line 100
+[25-Aug-2023 00:24:37 America/Boise] PHP Warning:  Use of undefined constant DATE_FORMAT - assumed 'DATE_FORMAT' (this will throw an Error in a future version of PHP) in /home4/arkethu2/public_html/crm/ajax_view_blog.php on line 100
+[25-Aug-2023 00:24:37 America/Boise] PHP Warning:  Use of undefined constant DATE_FORMAT - assumed 'DATE_FORMAT' (this will throw an Error in a future version of PHP) in /home4/arkethu2/public_html/crm/ajax_view_blog.php on line 100
+[25-Aug-2023 00:24:37 America/Boise] PHP Warning:  Use of undefined constant DATE_FORMAT - assumed 'DATE_FORMAT' (this will throw an Error in a future version of PHP) in /home4/arkethu2/public_html/crm/ajax_view_blog.php on line 100
+[25-Aug-2023 00:24:37 America/Boise] PHP Warning:  Use of undefined constant DATE_FORMAT - assumed 'DATE_FORMAT' (this will throw an Error in a future version of PHP) in /home4/arkethu2/public_html/crm/ajax_view_blog.php on line 100
+[25-Aug-2023 00:25:44 America/Boise] PHP Warning:  Use of undefined constant DATE_FORMAT - assumed 'DATE_FORMAT' (this will throw an Error in a future version of PHP) in /home4/arkethu2/public_html/crm/ajax_view_blog.php on line 100
+[25-Aug-2023 00:25:44 America/Boise] PHP Warning:  Use of undefined constant DATE_FORMAT - assumed 'DATE_FORMAT' (this will throw an Error in a future version of PHP) in /home4/arkethu2/public_html/crm/ajax_view_blog.php on line 100
+[25-Aug-2023 00:25:44 America/Boise] PHP Warning:  Use of undefined constant DATE_FORMAT - assumed 'DATE_FORMAT' (this will throw an Error in a future version of PHP) in /home4/arkethu2/public_html/crm/ajax_view_blog.php on line 100
+[25-Aug-2023 00:25:44 America/Boise] PHP Warning:  Use of undefined constant DATE_FORMAT - assumed 'DATE_FORMAT' (this will throw an Error in a future version of PHP) in /home4/arkethu2/public_html/crm/ajax_view_blog.php on line 100
+[25-Aug-2023 00:25:44 America/Boise] PHP Warning:  Use of undefined constant DATE_FORMAT - assumed 'DATE_FORMAT' (this will throw an Error in a future version of PHP) in /home4/arkethu2/public_html/crm/ajax_view_blog.php on line 100
+[25-Aug-2023 00:49:29 America/Boise] PHP Warning:  Use of undefined constant DATE_FORMAT - assumed 'DATE_FORMAT' (this will throw an Error in a future version of PHP) in /home4/arkethu2/public_html/crm/ajax_view_blog.php on line 101
+[25-Aug-2023 00:49:29 America/Boise] PHP Warning:  Use of undefined constant DATE_FORMAT - assumed 'DATE_FORMAT' (this will throw an Error in a future version of PHP) in /home4/arkethu2/public_html/crm/ajax_view_blog.php on line 101
+[25-Aug-2023 00:49:29 America/Boise] PHP Warning:  Use of undefined constant DATE_FORMAT - assumed 'DATE_FORMAT' (this will throw an Error in a future version of PHP) in /home4/arkethu2/public_html/crm/ajax_view_blog.php on line 101
+[25-Aug-2023 00:49:29 America/Boise] PHP Warning:  Use of undefined constant DATE_FORMAT - assumed 'DATE_FORMAT' (this will throw an Error in a future version of PHP) in /home4/arkethu2/public_html/crm/ajax_view_blog.php on line 101
+[25-Aug-2023 00:49:29 America/Boise] PHP Warning:  Use of undefined constant DATE_FORMAT - assumed 'DATE_FORMAT' (this will throw an Error in a future version of PHP) in /home4/arkethu2/public_html/crm/ajax_view_blog.php on line 101
+[25-Aug-2023 00:51:13 America/Boise] PHP Warning:  Use of undefined constant DATE_FORMAT - assumed 'DATE_FORMAT' (this will throw an Error in a future version of PHP) in /home4/arkethu2/public_html/crm/ajax_view_blog.php on line 101
+[25-Aug-2023 00:51:13 America/Boise] PHP Warning:  Use of undefined constant DATE_FORMAT - assumed 'DATE_FORMAT' (this will throw an Error in a future version of PHP) in /home4/arkethu2/public_html/crm/ajax_view_blog.php on line 101
+[25-Aug-2023 00:51:13 America/Boise] PHP Warning:  Use of undefined constant DATE_FORMAT - assumed 'DATE_FORMAT' (this will throw an Error in a future version of PHP) in /home4/arkethu2/public_html/crm/ajax_view_blog.php on line 101
+[25-Aug-2023 00:51:13 America/Boise] PHP Warning:  Use of undefined constant DATE_FORMAT - assumed 'DATE_FORMAT' (this will throw an Error in a future version of PHP) in /home4/arkethu2/public_html/crm/ajax_view_blog.php on line 101
+[25-Aug-2023 00:51:13 America/Boise] PHP Warning:  Use of undefined constant DATE_FORMAT - assumed 'DATE_FORMAT' (this will throw an Error in a future version of PHP) in /home4/arkethu2/public_html/crm/ajax_view_blog.php on line 101
+[25-Aug-2023 00:53:36 America/Boise] PHP Warning:  Use of undefined constant DATE_FORMAT - assumed 'DATE_FORMAT' (this will throw an Error in a future version of PHP) in /home4/arkethu2/public_html/crm/ajax_view_blog.php on line 97
+[25-Aug-2023 00:53:36 America/Boise] PHP Warning:  Use of undefined constant DATE_FORMAT - assumed 'DATE_FORMAT' (this will throw an Error in a future version of PHP) in /home4/arkethu2/public_html/crm/ajax_view_blog.php on line 97
+[25-Aug-2023 00:53:36 America/Boise] PHP Warning:  Use of undefined constant DATE_FORMAT - assumed 'DATE_FORMAT' (this will throw an Error in a future version of PHP) in /home4/arkethu2/public_html/crm/ajax_view_blog.php on line 97
+[25-Aug-2023 00:53:36 America/Boise] PHP Warning:  Use of undefined constant DATE_FORMAT - assumed 'DATE_FORMAT' (this will throw an Error in a future version of PHP) in /home4/arkethu2/public_html/crm/ajax_view_blog.php on line 97
+[25-Aug-2023 00:53:36 America/Boise] PHP Warning:  Use of undefined constant DATE_FORMAT - assumed 'DATE_FORMAT' (this will throw an Error in a future version of PHP) in /home4/arkethu2/public_html/crm/ajax_view_blog.php on line 97
+[25-Aug-2023 00:54:34 America/Boise] PHP Warning:  Use of undefined constant DATE_FORMAT - assumed 'DATE_FORMAT' (this will throw an Error in a future version of PHP) in /home4/arkethu2/public_html/crm/ajax_view_blog.php on line 97
+[25-Aug-2023 00:54:34 America/Boise] PHP Warning:  Use of undefined constant DATE_FORMAT - assumed 'DATE_FORMAT' (this will throw an Error in a future version of PHP) in /home4/arkethu2/public_html/crm/ajax_view_blog.php on line 97
+[25-Aug-2023 00:54:34 America/Boise] PHP Warning:  Use of undefined constant DATE_FORMAT - assumed 'DATE_FORMAT' (this will throw an Error in a future version of PHP) in /home4/arkethu2/public_html/crm/ajax_view_blog.php on line 97
+[25-Aug-2023 00:54:34 America/Boise] PHP Warning:  Use of undefined constant DATE_FORMAT - assumed 'DATE_FORMAT' (this will throw an Error in a future version of PHP) in /home4/arkethu2/public_html/crm/ajax_view_blog.php on line 97
+[25-Aug-2023 00:54:34 America/Boise] PHP Warning:  Use of undefined constant DATE_FORMAT - assumed 'DATE_FORMAT' (this will throw an Error in a future version of PHP) in /home4/arkethu2/public_html/crm/ajax_view_blog.php on line 97
+[25-Aug-2023 00:54:34 America/Boise] PHP Warning:  Use of undefined constant DATE_FORMAT - assumed 'DATE_FORMAT' (this will throw an Error in a future version of PHP) in /home4/arkethu2/public_html/crm/ajax_view_blog.php on line 97
+[25-Aug-2023 00:54:34 America/Boise] PHP Warning:  Use of undefined constant DATE_FORMAT - assumed 'DATE_FORMAT' (this will throw an Error in a future version of PHP) in /home4/arkethu2/public_html/crm/ajax_view_blog.php on line 97
+[25-Aug-2023 00:54:34 America/Boise] PHP Warning:  Use of undefined constant DATE_FORMAT - assumed 'DATE_FORMAT' (this will throw an Error in a future version of PHP) in /home4/arkethu2/public_html/crm/ajax_view_blog.php on line 97
+[25-Aug-2023 00:54:34 America/Boise] PHP Warning:  Use of undefined constant DATE_FORMAT - assumed 'DATE_FORMAT' (this will throw an Error in a future version of PHP) in /home4/arkethu2/public_html/crm/ajax_view_blog.php on line 97
+[25-Aug-2023 00:54:34 America/Boise] PHP Warning:  Use of undefined constant DATE_FORMAT - assumed 'DATE_FORMAT' (this will throw an Error in a future version of PHP) in /home4/arkethu2/public_html/crm/ajax_view_blog.php on line 97
+[25-Aug-2023 00:55:03 America/Boise] PHP Warning:  Use of undefined constant DATE_FORMAT - assumed 'DATE_FORMAT' (this will throw an Error in a future version of PHP) in /home4/arkethu2/public_html/crm/ajax_view_blog.php on line 97
+[25-Aug-2023 00:55:03 America/Boise] PHP Warning:  Use of undefined constant DATE_FORMAT - assumed 'DATE_FORMAT' (this will throw an Error in a future version of PHP) in /home4/arkethu2/public_html/crm/ajax_view_blog.php on line 97
+[25-Aug-2023 00:55:03 America/Boise] PHP Warning:  Use of undefined constant DATE_FORMAT - assumed 'DATE_FORMAT' (this will throw an Error in a future version of PHP) in /home4/arkethu2/public_html/crm/ajax_view_blog.php on line 97
+[25-Aug-2023 00:55:03 America/Boise] PHP Warning:  Use of undefined constant DATE_FORMAT - assumed 'DATE_FORMAT' (this will throw an Error in a future version of PHP) in /home4/arkethu2/public_html/crm/ajax_view_blog.php on line 97
+[25-Aug-2023 00:55:03 America/Boise] PHP Warning:  Use of undefined constant DATE_FORMAT - assumed 'DATE_FORMAT' (this will throw an Error in a future version of PHP) in /home4/arkethu2/public_html/crm/ajax_view_blog.php on line 97
+[25-Aug-2023 00:55:05 America/Boise] PHP Warning:  Use of undefined constant DATE_FORMAT - assumed 'DATE_FORMAT' (this will throw an Error in a future version of PHP) in /home4/arkethu2/public_html/crm/ajax_view_blog.php on line 97
+[25-Aug-2023 00:55:05 America/Boise] PHP Warning:  Use of undefined constant DATE_FORMAT - assumed 'DATE_FORMAT' (this will throw an Error in a future version of PHP) in /home4/arkethu2/public_html/crm/ajax_view_blog.php on line 97
+[25-Aug-2023 00:55:05 America/Boise] PHP Warning:  Use of undefined constant DATE_FORMAT - assumed 'DATE_FORMAT' (this will throw an Error in a future version of PHP) in /home4/arkethu2/public_html/crm/ajax_view_blog.php on line 97
+[25-Aug-2023 00:55:05 America/Boise] PHP Warning:  Use of undefined constant DATE_FORMAT - assumed 'DATE_FORMAT' (this will throw an Error in a future version of PHP) in /home4/arkethu2/public_html/crm/ajax_view_blog.php on line 97
+[25-Aug-2023 00:55:08 America/Boise] PHP Warning:  Use of undefined constant DATE_FORMAT - assumed 'DATE_FORMAT' (this will throw an Error in a future version of PHP) in /home4/arkethu2/public_html/crm/ajax_view_blog.php on line 97
+[25-Aug-2023 00:55:08 America/Boise] PHP Warning:  Use of undefined constant DATE_FORMAT - assumed 'DATE_FORMAT' (this will throw an Error in a future version of PHP) in /home4/arkethu2/public_html/crm/ajax_view_blog.php on line 97
+[25-Aug-2023 00:55:08 America/Boise] PHP Warning:  Use of undefined constant DATE_FORMAT - assumed 'DATE_FORMAT' (this will throw an Error in a future version of PHP) in /home4/arkethu2/public_html/crm/ajax_view_blog.php on line 97
+[25-Aug-2023 00:55:08 America/Boise] PHP Warning:  Use of undefined constant DATE_FORMAT - assumed 'DATE_FORMAT' (this will throw an Error in a future version of PHP) in /home4/arkethu2/public_html/crm/ajax_view_blog.php on line 97
+[25-Aug-2023 00:55:08 America/Boise] PHP Warning:  Use of undefined constant DATE_FORMAT - assumed 'DATE_FORMAT' (this will throw an Error in a future version of PHP) in /home4/arkethu2/public_html/crm/ajax_view_blog.php on line 97
+[25-Aug-2023 01:15:44 America/Boise] PHP Warning:  mysqli_fetch_assoc() expects parameter 1 to be mysqli_result, bool given in /home4/arkethu2/public_html/crm/ajax_view_blog.php on line 89
+[25-Aug-2023 01:16:26 America/Boise] PHP Warning:  mysqli_fetch_assoc() expects parameter 1 to be mysqli_result, bool given in /home4/arkethu2/public_html/crm/ajax_view_blog.php on line 89
+[25-Aug-2023 01:21:08 America/Boise] PHP Warning:  mysqli_fetch_assoc() expects parameter 1 to be mysqli_result, bool given in /home4/arkethu2/public_html/crm/ajax_view_blog.php on line 89
