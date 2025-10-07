@@ -5,3 +5,9 @@ if (!function_exists('format_amount')) {
         return env('CUR').' '.$amount;
     }
 }
+
+if (!function_exists('custom_assets')) {
+    function custom_assets($path = '') {
+        return env('IMG_URL') . $path;
+    }
+}

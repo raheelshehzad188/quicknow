@@ -14,14 +14,14 @@
 }
 </style>
 
-  <link href="{{ asset('backend_assets/css/bootstrap.min.css')}}" rel="stylesheet">
-  <link href="{{ asset('backend_assets/font-awesome/css/font-awesome.css')}}" rel="stylesheet">
+  <link href="{{ custom_assets('backend_assets/css/bootstrap.min.css')}}" rel="stylesheet">
+  <link href="{{ custom_assets('backend_assets/font-awesome/css/font-awesome.css')}}" rel="stylesheet">
 
-  <link href="{{ asset('backend_assets/css/plugins/dataTables/datatables.min.css')}}" rel="stylesheet">
+  <link href="{{ custom_assets('backend_assets/css/plugins/dataTables/datatables.min.css')}}" rel="stylesheet">
 
-  <link href="{{ asset('backend_assets/css/animate.css')}}" rel="stylesheet">
-  <link href="{{ asset('backend_assets/css/style.css')}}" rel="stylesheet">
-  <link href="{{ asset('backend_assets/css/plugins/select2/select2.min.css')}}" rel="stylesheet">
+  <link href="{{ custom_assets('backend_assets/css/animate.css')}}" rel="stylesheet">
+  <link href="{{ custom_assets('backend_assets/css/style.css')}}" rel="stylesheet">
+  <link href="{{ custom_assets('backend_assets/css/plugins/select2/select2.min.css')}}" rel="stylesheet">
 
 
   <link href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css" rel="stylesheet">
@@ -615,18 +615,18 @@
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 
         <!-- Mainly scripts -->
-    <script src="{{ asset('backend_assets/js/jquery-3.1.1.min.js')}}"></script>
-    <script src="{{ asset('backend_assets/js/bootstrap.min.js')}}"></script>
-    <script src="{{ asset('backend_assets/js/plugins/metisMenu/jquery.metisMenu.js')}}"></script>
-    <script src="{{ asset('backend_assets/js/plugins/slimscroll/jquery.slimscroll.min.js')}}"></script>
+    <script src="{{ custom_assets('backend_assets/js/jquery-3.1.1.min.js')}}"></script>
+    <script src="{{ custom_assets('backend_assets/js/bootstrap.min.js')}}"></script>
+    <script src="{{ custom_assets('backend_assets/js/plugins/metisMenu/jquery.metisMenu.js')}}"></script>
+    <script src="{{ custom_assets('backend_assets/js/plugins/slimscroll/jquery.slimscroll.min.js')}}"></script>
 
-    <script src="{{ asset('backend_assets/js/plugins/dataTables/datatables.min.js')}}"></script>
+    <script src="{{ custom_assets('backend_assets/js/plugins/dataTables/datatables.min.js')}}"></script>
 
     <!-- Custom and plugin javascript -->
-    <script src="{{ asset('backend_assets/js/inspinia.js')}}"></script>
-    <script src="{{ asset('backend_assets/js/plugins/pace/pace.min.js')}}"></script>
+    <script src="{{ custom_assets('backend_assets/js/inspinia.js')}}"></script>
+    <script src="{{ custom_assets('backend_assets/js/plugins/pace/pace.min.js')}}"></script>
     <!-- Select2 -->
-    <script src="{{ asset('backend_assets/js/plugins/select2/select2.full.min.js')}}"></script>
+    <script src="{{ custom_assets('backend_assets/js/plugins/select2/select2.full.min.js')}}"></script>
     <!-- SUMMERNOTE -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/summernote/0.8.9/summernote-bs4.css" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/summernote/0.8.9/summernote-bs4.js"></script>
