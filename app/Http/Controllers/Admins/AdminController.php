@@ -79,27 +79,65 @@ class AdminController extends Controller
         return view('admins.admin',compact('edit'));
     }
     
+    function create_admin(Request $req)
+    {
+        $req->validate([
+            'email' => 'required|email|unique:admins,email',
+            'password' => 'required|min:6'
+        ]);
+        
+        $admin = new Admin();
+        $admin->email = $req->email;
+        $admin->password = Hash::make($req->password);
+        $admin->save();
+        
+        return redirect(route('admins.admin'))->with([
+            'msg'=>'Admin created Successfully',
+            'msg_type'=>'success',
+        ]);
+    }
+    
     function update_admin(Request $req)
     {
-       $email = $req->email;
-       $pass = Hash::make($req->pass);
-       $data = array(
-           'email'=>$email,
-           'password'=>$pass
-           );
-          $up =  DB::table('admins')->where('id', $req->id)->update($data);
-          if($up){
-               return redirect(route('admins.admin'))->with([
-                'msg'=>'Admin updated Successfully',
+        $req->validate([
+            'email' => 'required|email|unique:admins,email,'.$req->id,
+            'password' => 'required|min:6'
+        ]);
+        
+        $admin = Admin::find($req->id);
+        $admin->email = $req->email;
+        $admin->password = Hash::make($req->password);
+        $admin->save();
+        
+        return redirect(route('admins.admin'))->with([
+            'msg'=>'Admin updated Successfully',
+            'msg_type'=>'success',
+        ]);
+    }
+    
+    function delete_admin($id)
+    {
+        // Prevent deleting the current logged-in admin
+        if(Session::has('admin') && Session::get('admin')->id == $id) {
+            return redirect(route('admins.admin'))->with([
+                'msg'=>'You cannot delete your own account',
+                'msg_type'=>'error',
+            ]);
+        }
+        
+        $admin = Admin::find($id);
+        if($admin) {
+            $admin->delete();
+            return redirect(route('admins.admin'))->with([
+                'msg'=>'Admin deleted Successfully',
                 'msg_type'=>'success',
             ]);
-          }else{
-              return redirect(route('admins.admin'))->with([
-                'msg'=>'Please Try Again!',
-                'msg_type'=>'success',
+        } else {
+            return redirect(route('admins.admin'))->with([
+                'msg'=>'Admin not found',
+                'msg_type'=>'error',
             ]);
-          }
-          
+        }
     }
 
 
@@ -2273,5 +2311,24 @@ public function detail($id)
     ->select('pfaqs.*', 'products.product_name')
     ->get();
         return view('admins.faq',compact('sliders','edit'));
+    }
+
+    public function show_on_home(Request $request)
+    {
+        $category = Category::find($request->product_id);
+        if($category) {
+            $category->show_on_home = $request->Status;
+            $category->save();
+            
+            return response()->json([
+                'msg' => 'Category status updated successfully',
+                'msg_type' => 'success'
+            ]);
+        }
+        
+        return response()->json([
+            'msg' => 'Category not found',
+            'msg_type' => 'error'
+        ]);
     }
 }

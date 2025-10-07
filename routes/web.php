@@ -21,6 +21,77 @@ Route::get('/clear-cache', function() {
  });
 Route::get('/test',[Admins\AdminController::class,'test'])->name('test');
 
+// Static assets routes - must be at the very beginning
+Route::get('/theme2/css/{file}', function($file) {
+    $path = public_path("theme2/css/{$file}");
+    if (file_exists($path)) {
+        return response()->file($path, ['Content-Type' => 'text/css']);
+    }
+    abort(404);
+});
+
+Route::get('/theme2/js/{file}', function($file) {
+    $path = public_path("theme2/js/{$file}");
+    if (file_exists($path)) {
+        return response()->file($path, ['Content-Type' => 'application/javascript']);
+    }
+    abort(404);
+});
+
+// Theme2 assets routes
+Route::get('/theme2/css/{file}', function($file) {
+    $path = public_path("theme2/css/{$file}");
+    if (file_exists($path)) {
+        return response()->file($path, ['Content-Type' => 'text/css']);
+    }
+    abort(404);
+});
+
+Route::get('/theme2/js/{file}', function($file) {
+    $path = public_path("theme2/js/{$file}");
+    if (file_exists($path)) {
+        return response()->file($path, ['Content-Type' => 'application/javascript']);
+    }
+    abort(404);
+});
+
+Route::get('/theme2/img/{file}', function($file) {
+    $path = public_path("theme2/img/{$file}");
+    if (file_exists($path)) {
+        $extension = pathinfo($path, PATHINFO_EXTENSION);
+        $contentType = match($extension) {
+            'jpg', 'jpeg' => 'image/jpeg',
+            'png' => 'image/png',
+            'svg' => 'image/svg+xml',
+            'gif' => 'image/gif',
+            'webp' => 'image/webp',
+            default => 'image/jpeg'
+        };
+        return response()->file($path, ['Content-Type' => $contentType]);
+    }
+    abort(404);
+});
+
+// Slider images route
+Route::get('/theme2/img/slider/{file}', function($file) {
+    $path = public_path("theme2/img/slider/{$file}");
+    if (file_exists($path)) {
+        $extension = pathinfo($path, PATHINFO_EXTENSION);
+        $contentType = match($extension) {
+            'jpg', 'jpeg' => 'image/jpeg',
+            'png' => 'image/png',
+            'svg' => 'image/svg+xml',
+            'gif' => 'image/gif',
+            'webp' => 'image/webp',
+            default => 'image/jpeg'
+        };
+        return response()->file($path, ['Content-Type' => $contentType]);
+    }
+    abort(404);
+});
+
+
+
 Route::get('/admin', function () {
     return redirect('admin/login');
 });
@@ -86,7 +157,9 @@ Route::name('admins.')->prefix('/admin')->group(function () {
     
         Route::get('/posts',[Admins\AdminController::class,'posts'])->name('posts');
         Route::get('/admin',[Admins\AdminController::class,'admin'])->name('admin');
+        Route::post('/create_admin',[Admins\AdminController::class,'create_admin'])->name('create_admin');
         Route::post('/update_admin',[Admins\AdminController::class,'update_admin'])->name('update_admin');
+        Route::get('/delete_admin/{id}',[Admins\AdminController::class,'delete_admin'])->name('delete_admin');
         Route::any('/delete_order',[Admins\AdminController::class,'delete_order'])->name('delete_order');
         Route::any('/post_form/{id?}',[Admins\AdminController::class,'post_form'])->name('post_form');
         Route::get('/post/delete/{id}',[Admins\AdminController::class,'post_delete'])->name('post_delete');
@@ -116,7 +189,7 @@ Route::get('/product/{id}',[Front\FrontController::class,'product_detail']);
 Route::get('/tags/{id}',[Front\FrontController::class,'tags_detail']);
 // Route::get('/blog',[Front\FrontController::class,'blogs']);
 // Route::get('/blog/{id}',[Front\FrontController::class,'blog_detail']);
-Route::get('/category/{id}',[Front\FrontController::class,'category_detail']);
+Route::get('/category/{slug}',[Front\FrontController::class,'category_detail']);
 Route::get('/blog_category/{id}',[Front\FrontController::class,'blog_category']);
 Route::get('/shape/{id}',[Front\FrontController::class,'shape_detail']);
 Route::get('/brand/{id}',[Front\FrontController::class,'brand_detail']);
@@ -166,7 +239,9 @@ Route::any('/get_selected_price',[Front\FrontController::class,'get_selected_pri
 Route::post('/cart/add', [Front\CartController::class,'add'])->name('cart');
 Route::POST('/subcribe_newsletter',[Front\FrontController::class,'subcribe_newsletter'])->name('subcribe_newsletter');
 Route::any('/forget_pass',[Front\FrontController::class,'forget_pass'])->name('forget_pass');
-Route::get('/{id}',[Front\FrontController::class,'page_detail']);
+
+
+Route::get('/{slug}',[Front\FrontController::class,'find']);
 
 
 

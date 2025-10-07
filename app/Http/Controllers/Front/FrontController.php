@@ -52,9 +52,9 @@ class FrontController extends Controller
 public function view($view, $data = array())
 {
     // $view = 'home';
-    $ctheme = 'theme1';
-    $layout = 'theme1.layout';
-    $assets = env('APP_URL').'public/theme1/';
+    $ctheme = 'theme2';
+    $layout = 'theme2.layout';
+    $assets = env('APP_URL').'theme2/';
     $data['layout'] = $layout;
     $data['assets_url'] = $assets;
 
@@ -344,6 +344,20 @@ public function view($view, $data = array())
 
     $boxes = Box::all();
 
+    // Fetch featured categories with their products
+    $featured_categories = Category::where('status', 1)
+        ->where('show_on_home', 1)
+        ->orderBy('id', 'DESC')
+        ->get();
+    
+    // Load products for each featured category
+    foreach($featured_categories as $category) {
+        $category->products = Product::where('status', 1)
+            ->where('category_id', $category->id)
+            ->orderBy('id', 'DESC')
+            ->limit(10)
+            ->get();
+    }
     $data = [
         'page'              => $page,
         'products'          => $products,
@@ -358,6 +372,7 @@ public function view($view, $data = array())
         'onslaeproducts'    => $onslaeproducts,
         'shap'              => $shap,
         'home_cats'         => $home_cats,
+        'featured_categories' => $featured_categories,
         'posts'             => $posts,
         'boxes'             => $boxes,
     ];
@@ -461,6 +476,20 @@ public function view($view, $data = array())
 
     $boxes = Box::all();
 
+    // Fetch featured categories with their products
+    $featured_categories = Category::where('status', 1)
+        ->where('show_on_home', 1)
+        ->orderBy('id', 'DESC')
+        ->get();
+    
+    // Load products for each featured category
+    foreach($featured_categories as $category) {
+        $category->products = Product::where('status', 1)
+            ->where('category_id', $category->id)
+            ->orderBy('id', 'DESC')
+            ->limit(10)
+            ->get();
+    }
     $data = [
         'page'              => $page,
         'products'          => $products,
@@ -475,6 +504,7 @@ public function view($view, $data = array())
         'onslaeproducts'    => $onslaeproducts,
         'shap'              => $shap,
         'home_cats'         => $home_cats,
+        'featured_categories' => $featured_categories,
         'posts'             => $posts,
         'boxes'             => $boxes,
     ];

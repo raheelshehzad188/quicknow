@@ -81,7 +81,7 @@ $cate = DB::table('categories')->get();
     font-weight: 500;
     width: 63px;">Login</div>
           <form  action="{{url('/')}}/admin/login" method="post">
-      <meta name="csrf-token" content="{{ csrf_token() }}">
+      @csrf
 
       @if(session('invalid'))
       <div class="alert alert-danger mt-1 alert-validation-msg" role="alert">
