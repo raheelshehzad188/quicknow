@@ -5,6 +5,7 @@ namespace App\Helpers;
 
 use App\Models\Admins\Product;
 use Illuminate\Support\Facades\Session;
+use DB;
 
 class Cart
 {
@@ -41,10 +42,12 @@ class Cart
         }
 
         else{
+            $setting = DB::table('setting')
+    ->where('id', '=', '1')
+    ->first();
             $cart = [
                 'qty' => $qty,
-                'ship'=>$product->shipping_price,
-                'amount' => $product->discount_price * $qty +$product->shipping_price ,
+                'amount' => $product->discount_price * $qty,
                 'items' => [
                     ['id' => $product_id,
                         'qty' => $qty,

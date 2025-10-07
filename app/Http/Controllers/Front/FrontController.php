@@ -1,9 +1,10 @@
 <?php
 
 namespace App\Http\Controllers\Front;
- 
+
 use App\Models\Admins\Category;
 use App\Models\Admins\Box;
+use App\Models\Admins\Pfaq;
 use App\Models\Admins\CategoriesToMeta;
 use App\Models\Admins\Blog_Post;
 use App\Models\Admins\Slider;
@@ -12,7 +13,7 @@ use App\Models\Admins\User;
 use App\Models\Admins\SubCategory;
 use App\Models\Admins\Blog_Category;
 use App\Models\Admins\Product; 
-use App\Models\Admins\Order;
+use App\Models\Order;
 use App\Models\Admins\Contact;
 use App\Models\Admins\Setting;
 use App\Models\Admins\Faq;
@@ -29,6 +30,8 @@ use App\Models\Admins\Size;
 use App\Models\Admins\Colors;
 use App\Models\Admins\Shap;
 use App\Models\Admins\Import;
+use Symfony\Component\Mime\Part\HtmlPart;
+
 use App\Helpers\Cart;
 use Session;
 use Mail;
@@ -39,12 +42,34 @@ use Illuminate\Support\Str;
 
 
 
+
 class FrontController extends Controller
 {
+    public function __construct()
+{
+    
+}
+public function view($view, $data = array())
+{
+    // $view = 'home';
+    $ctheme = 'theme1';
+    $layout = 'theme1.layout';
+    $assets = env('APP_URL').'public/theme1/';
+    $data['layout'] = $layout;
+    $data['assets_url'] = $assets;
+
+    return view($ctheme .'.'.$view,$data);
+
+}
+
     
 
     public function index()
     {
+        
+        
+        // shaheer
+        
         $posts= Product::latest()->get();
         $xml = '<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">';
         foreach ($posts as $post)
@@ -80,7 +105,7 @@ class FrontController extends Controller
         foreach ($posts as $post)
         {
             $xml .= '<url>
-                <loc>'.url('category/').'/'.$post->slug.'</loc> 
+                <loc>'.env('APP_URL').'category'.'/'.$post->slug.'</loc> 
                 <priority>1.0</priority>
                 <changefreq>daily</changefreq>
                 </url>';
@@ -133,6 +158,7 @@ class FrontController extends Controller
         $Rating=Rating::all();
         
         $categories=Category::all();
+        dd($categories);
         $shap = Shap::all();
         $setting = DB::table('setting')
             ->where('id', '=', '1')
@@ -201,117 +227,261 @@ class FrontController extends Controller
             $meta->scheme = $sch;
                         }
 
- var_dump($posts);
-
-        $products=Product::select('products.*')->orderBy('products.id','DESC')->get();
-        $fproducts=Product::select('products.*')->where('Featured','1')->orderBy('products.id','DESC')->limit(10)->get();
+        $products=Product::select('products.*')->where('status','1')->orderBy('products.id','DESC')->get();
+    
         
-        $aproducts=Product::select('products.*')->where('New_Arrival','1')->orderBy('products.id','DESC')->limit(10)->get();
-        $onslaeproducts=Product::select('products.*')->where('Sale','1')->orderBy('products.id','DESC')->limit(10)->get();
-        $mostviewproducts=Product::select('products.*')->orderBy('view','DESC')->limit(10)->get();
+        $aproducts=Product::select('products.*')->where('status','1')->where('New_Arrival','1')->orderBy('products.id','DESC')->limit(10)->get();
+        $onslaeproducts=Product::select('products.*')->where('status','1')->where('Sale','1')->orderBy('products.id','DESC')->limit(10)->get();
+        $mostviewproducts=Product::select('products.*')->where('status','1')->orderBy('view','DESC')->limit(10)->get();
         $home_cats = DB::table('home_cats')->where->orderBy('home_cats.sort')->get();
         Session::put('title','Home');
         
         return view('front.home1',compact('page','products','categories','fproducts','setting','aproducts','mostviewproducts','Slider','Rating','meta','onslaeproducts','shap','home_cats','posts'));
     }
-
-    public function home1(Request $request)
+    
+     public function search(request $request)
     {
-         $page = "home";
+        
+        $slug = $request->text;
+        
+ // $brands=Brand::all();
         $Slider=Slider::all();
-        $Rating=Rating::all();
-        $posts=Blog_Post::all();
         $categories=Category::all();
-        foreach($categories as $k=> $v)
-        {
-            
-        $fproducts=Product::where('status',1)->select('products.*')->where('category_id',$v->id)->orderBy('products.id','DESC')->get();
-        $categories[$k]->prod = count($fproducts);
-        }
-        $shap = Shap::all();
-        $setting = DB::table('setting')
-            ->where('id', '=', '1')
-            ->first();
-
-        $meta = DB::table('setting')
-            ->where('id', '=', '1')
-            ->first();
-        if($meta)
-        {
-            $meta->url = url('/');
-            $sch = array (
-              '@context' => 'https://schema.org/',
-              'name' => $meta->title,
-              'description' => $meta->description,
-              'brand' =>
-              array (
-                '@type' => 'Brand',
-                'name' => 'UAE Disar',
-              ),
-              'sku' => 'ebaytelemart_diSUa',
-              'gtin13' => '300024462524',
-              'offers' =>
-              array (
-                '@type' => 'AggregateOffer',
-                'url' => url()->current(),
-                'priceCurrency' => 'PKR',
-                'lowPrice' => '1999',
-                'highPrice' => '2000',
-                'offerCount' => '5',
-              ),
-              'aggregateRating' =>
-              array (
-                '@type' => 'AggregateRating',
-                'ratingValue' => '5',
-                'bestRating' => '5',
-                'worstRating' => '1',
-                'ratingCount' => '1',
-                'reviewCount' => '1',
-              ),
-              'review' =>
-              array (
-                '@type' => 'Review',
-                'name' => 'Fahad Khan',
-                'reviewBody' => 'Best Product',
-                'reviewRating' =>
-                array (
-                  '@type' => 'Rating',
-                  'ratingValue' => '5',
-                  'bestRating' => '5',
-                  'worstRating' => '1',
-                ),
-                'datePublished' => '2022-05-01',
-                'author' =>
-                array (
-                  '@type' => 'Person',
-                  'name' => 'Ebaytelemart',
-                ),
-                'publisher' =>
-                array (
-                  '@type' => 'Organization',
-                  'name' => 'Ebaytelemart',
-                ),
-              ),
-            );
-            $meta->scheme = $sch;
-                        }
-
-
-
-        $products=Product::where('status',1)->select('products.*')->orderBy('products.id','DESC')->get();
-        $fproducts=Product::select('products.*')->where('Featured','1')->orderBy('products.id','DESC')->limit(8)->get();
-
-        $aproducts=Product::where('status',1)->select('products.*')->where('New_Arrival','1')->orderBy('products.id','DESC')->limit(8)->get();
-        $onslaeproducts=Product::where('status',1)->select('products.*')->where('Sale','1')->orderBy('products.id','DESC')->limit(10)->get();
-        $mostviewproducts=Product::where('status',1)->select('products.*')->orderBy('view','DESC')->limit(10)->get();
-        $home_cats = DB::table('home_cats')->where('status','=',1)->orderBy('home_cats.sort')->get();
-        $maincategories=Category::select('categories.*')->where('show_on_home','1')->where('status', '1')->orderBy('categories.id','ASC')->get();
-      
-        Session::put('title','Home');
-        $boxes=Box::all();
-
-        return view('front.home2',compact('page','products','categories','fproducts','setting','aproducts','mostviewproducts','Slider','Rating','meta','onslaeproducts','shap','home_cats','posts','boxes' ,'maincategories'));
+        // return $slug->input();
+        $rproducts = product::where('status',1)->where('product_name', 'like', '%'.$slug.'%')->get();
+        // $slug = $rproducts->slug;
+        $search = 1;
+        return view('front.result_detail',compact('rproducts','categories','search'));
     }
+
+    public function error404()
+{
+
+    $page = "home";
+
+    $Slider        = Slider::all();
+    $Rating        = Rating::all();
+    $posts         = Blog_Post::all();
+    $posts_home    = Blog_Post::take(3)->get(); // (not used below but kept in case your view needs it)
+    $categories    = Category::all();
+
+    // attach product counts (faster: use count() query)
+    foreach ($categories as $k => $v) {
+        $categories[$k]->prod = Product::where('status', 1)
+            ->where('category_id', $v->id)
+            ->count();
+    }
+
+    $shap     = Shap::all();
+    $setting  = DB::table('setting')->where('id', 1)->first();
+    $meta     = DB::table('setting')->where('id', 1)->first();
+
+    if ($meta) {
+        $meta->url = url('/');
+
+        // build social links (skip null/empty)
+        $sameAs = array_values(array_filter([
+            $meta->instagram ?? null,
+            $meta->facebook  ?? null,
+            $meta->tiktok    ?? null,
+            $meta->pinterest ?? null,
+            $meta->twitter   ?? null,   // if present in your settings
+            $meta->youtube   ?? null,   // if present in your settings
+        ]));
+
+        // logo absolute URL if you store relative path in DB
+        $logoUrl = !empty($meta->logo) ? asset(ltrim($meta->logo, '/')) : null;
+
+        // ---------- JSON-LD SCHEMA (FIXED) ----------
+        // 1) WebSite with SearchAction
+        $siteSchema = [
+            '@context'      => 'https://schema.org',
+            '@type'         => 'WebSite',
+            'url'           => url('/'),
+            'name'          => $meta->title ?? 'Quicknow.pk',
+            'description'   => $meta->description ?? null,
+            'potentialAction' => [
+                '@type'        => 'SearchAction',
+                // keep it simple & valid; EntryPoint object optional
+                'target'       => url('/search') . '?q={search_term_string}',
+                'query-input'  => 'required name=search_term_string',
+            ],
+        ];
+
+        // 2) Organization (publisher/brand)
+        $orgSchema = [
+            '@context'     => 'https://schema.org',
+            '@type'        => 'Organization',
+            'url'          => url('/'),
+            'name'         => $meta->title ?? 'Quicknow.pk',
+            'logo'         => $logoUrl,
+            'email'        => $setting->email ?? null,
+            'telephone'    => $setting->phone ?? null,
+            'sameAs'       => $sameAs,
+            'contactPoint' => [
+                '@type'              => 'ContactPoint',
+                'telephone'          => $setting->phone ?? null,
+                'contactType'        => 'customer service',
+                'areaServed'         => 'PK',
+                'availableLanguage'  => ['en', 'ur'],
+            ],
+        ];
+
+        // Attach both schemas so Blade me <script type="application/ld+json"> me print ho sake
+        // NOTE: homepage pe product/offer schema mat daalo; wo product detail pages pe use karo.
+        $meta->scheme = [$siteSchema, $orgSchema];
+    }
+
+    // product lists
+    $products          = Product::where('status', 1)->orderBy('id', 'DESC')->get();
+    $fproducts         = Product::where('status', 1)->where('Featured', 1)->orderBy('id', 'DESC')->limit(8)->get();
+    $aproducts         = Product::where('status', 1)->where('New_Arrival', 1)->orderBy('id', 'DESC')->limit(8)->get();
+    $onslaeproducts    = Product::where('status', 1)->where('Sale', 1)->orderBy('id', 'DESC')->limit(10)->get();
+    $mostviewproducts  = Product::where('status', 1)->orderBy('view', 'DESC')->limit(10)->get();
+    $home_cats         = DB::table('home_cats')->where('status', 1)->orderBy('home_cats.sort')->get();
+
+    Session::put('title', 'Home');
+
+    $boxes = Box::all();
+
+    $data = [
+        'page'              => $page,
+        'products'          => $products,
+        'categories'        => $categories,
+        'fproducts'         => $fproducts,
+        'setting'           => $setting,
+        'aproducts'         => $aproducts,
+        'mostviewproducts'  => $mostviewproducts,
+        'Slider'            => $Slider,
+        'Rating'            => $Rating,
+        'meta'              => $meta,
+        'onslaeproducts'    => $onslaeproducts,
+        'shap'              => $shap,
+        'home_cats'         => $home_cats,
+        'posts'             => $posts,
+        'boxes'             => $boxes,
+    ];
+
+    return $this->view('home', $data);
+}
+    public function home1(Request $request)
+{
+    // quick actions
+    if ($request->query('import')) {
+        return $this->import();
+    }
+    if ($request->query('text')) {
+        return $this->search_detail1($request->query('text'));
+    }
+
+    $page = "home";
+
+    $Slider        = Slider::all();
+    $Rating        = Rating::all();
+    $posts         = Blog_Post::all();
+    $posts_home    = Blog_Post::take(3)->get(); // (not used below but kept in case your view needs it)
+    $categories    = Category::all();
+
+    // attach product counts (faster: use count() query)
+    foreach ($categories as $k => $v) {
+        $categories[$k]->prod = Product::where('status', 1)
+            ->where('category_id', $v->id)
+            ->count();
+    }
+
+    $shap     = Shap::all();
+    $setting  = DB::table('setting')->where('id', 1)->first();
+    $meta     = DB::table('setting')->where('id', 1)->first();
+
+    if ($meta) {
+        $meta->url = url('/');
+
+        // build social links (skip null/empty)
+        $sameAs = array_values(array_filter([
+            $meta->instagram ?? null,
+            $meta->facebook  ?? null,
+            $meta->tiktok    ?? null,
+            $meta->pinterest ?? null,
+            $meta->twitter   ?? null,   // if present in your settings
+            $meta->youtube   ?? null,   // if present in your settings
+        ]));
+
+        // logo absolute URL if you store relative path in DB
+        $logoUrl = !empty($meta->logo) ? asset(ltrim($meta->logo, '/')) : null;
+
+        // ---------- JSON-LD SCHEMA (FIXED) ----------
+        // 1) WebSite with SearchAction
+        $siteSchema = [
+            '@context'      => 'https://schema.org',
+            '@type'         => 'WebSite',
+            'url'           => url('/'),
+            'name'          => $meta->title ?? 'Quicknow.pk',
+            'description'   => $meta->description ?? null,
+            'potentialAction' => [
+                '@type'        => 'SearchAction',
+                // keep it simple & valid; EntryPoint object optional
+                'target'       => url('/search') . '?q={search_term_string}',
+                'query-input'  => 'required name=search_term_string',
+            ],
+        ];
+
+        // 2) Organization (publisher/brand)
+        $orgSchema = [
+            '@context'     => 'https://schema.org',
+            '@type'        => 'Organization',
+            'url'          => url('/'),
+            'name'         => $meta->title ?? 'Quicknow.pk',
+            'logo'         => $logoUrl,
+            'email'        => $setting->email ?? null,
+            'telephone'    => $setting->phone ?? null,
+            'sameAs'       => $sameAs,
+            'contactPoint' => [
+                '@type'              => 'ContactPoint',
+                'telephone'          => $setting->phone ?? null,
+                'contactType'        => 'customer service',
+                'areaServed'         => 'PK',
+                'availableLanguage'  => ['en', 'ur'],
+            ],
+        ];
+
+        // Attach both schemas so Blade me <script type="application/ld+json"> me print ho sake
+        // NOTE: homepage pe product/offer schema mat daalo; wo product detail pages pe use karo.
+        $meta->scheme = [$siteSchema, $orgSchema];
+    }
+
+    // product lists
+    $products          = Product::where('status', 1)->orderBy('id', 'DESC')->get();
+    $fproducts         = Product::where('status', 1)->where('Featured', 1)->orderBy('id', 'DESC')->limit(8)->get();
+    $aproducts         = Product::where('status', 1)->where('New_Arrival', 1)->orderBy('id', 'DESC')->limit(8)->get();
+    $onslaeproducts    = Product::where('status', 1)->where('Sale', 1)->orderBy('id', 'DESC')->limit(10)->get();
+    $mostviewproducts  = Product::where('status', 1)->orderBy('view', 'DESC')->limit(10)->get();
+    $home_cats         = DB::table('home_cats')->where('status', 1)->orderBy('home_cats.sort')->get();
+
+    Session::put('title', 'Home');
+
+    $boxes = Box::all();
+
+    $data = [
+        'page'              => $page,
+        'products'          => $products,
+        'categories'        => $categories,
+        'fproducts'         => $fproducts,
+        'setting'           => $setting,
+        'aproducts'         => $aproducts,
+        'mostviewproducts'  => $mostviewproducts,
+        'Slider'            => $Slider,
+        'Rating'            => $Rating,
+        'meta'              => $meta,
+        'onslaeproducts'    => $onslaeproducts,
+        'shap'              => $shap,
+        'home_cats'         => $home_cats,
+        'posts'             => $posts,
+        'boxes'             => $boxes,
+    ];
+
+    return $this->view('home', $data);
+}
+
 
    function login()
     {   
@@ -319,8 +489,203 @@ class FrontController extends Controller
         return view('front.login');
 
     } 
+       public function slugify($string) {
+  return strtolower(trim(preg_replace('~[^0-9a-z]+~i', '-', html_entity_decode(preg_replace('~&([a-z]{1,2})(?:acute|cedil|circ|grave|lig|orn|ring|slash|th|tilde|uml);~i', '$1', htmlentities($string, ENT_QUOTES, 'UTF-8')), ENT_QUOTES, 'UTF-8')), '-'));
+}
+public function getImage($url){
+            $ch = curl_init ($url);
+            curl_setopt($ch, CURLOPT_HEADER, 0);
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+            curl_setopt($ch, CURLOPT_BINARYTRANSFER,1);
+            $resource = curl_exec($ch);
+            curl_close ($ch);
+
+            return $resource;
+    }
     public function import()
+    {  
+        
+        header('Access-Control-Allow-Origin: *');
+
+header('Access-Control-Allow-Methods: GET, POST');
+
+header("Access-Control-Allow-Headers: X-Requested-With");
+        $id = isset($_GET['id'])?$_GET['id']:0;
+        $url = 'https://shoppakistan.com.pk/fetch/product.php?id='.$id;
+        $curl = curl_init();
+
+curl_setopt_array($curl, array(
+  CURLOPT_URL => $url,
+  CURLOPT_RETURNTRANSFER => true,
+  CURLOPT_ENCODING => '',
+  CURLOPT_MAXREDIRS => 10,
+  CURLOPT_TIMEOUT => 0,
+  CURLOPT_FOLLOWLOCATION => true,
+  CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+  CURLOPT_CUSTOMREQUEST => 'GET',
+  CURLOPT_HTTPHEADER => array(
+    'Cookie: PHPSESSID=0f0a71e4b614f91e0bc56d876dbcf796'
+  ),
+));
+
+$response = curl_exec($curl);
+
+curl_close($curl);
+$response = json_decode($response,true);
+$next = 0;
+
+if($response)
+{
+    $products = Product::where('old_id',$response['id'])->first();
+if($products)
+{
+    //update
+    echo $next = $response['id'];
+    exit();
+}
+else
+{
+$in = array(
+    
+    'old_id'=>$response['id'],
+    'product_name'=>$response['name'],
+    'size'=>$response['size'],
+    'made_in'=>$response['madein'],
+    'product_quantity'=>$response['qnt'],
+    'product_details'=>$response['long_dis'],
+    'short_discriiption'=>$response['short_dis'],
+    'tags'=>$response['tags'],
+    'status'=>1,
+    'selling_price'=>$response['price'],
+    'discount_price'=>$response['sell_price'],
+    'image_one'=>"public/images/products/old/".$response['img'],
+    'slug'=>$response['slug'],
+    );
+    $pro = DB::table('products')->insertGetId($in);
+    if($pro)
     {
+        $in_meta = array(
+            'pid'=> $pro,
+            'title'=> $response['meta_title'],
+            'description'=> $response['meta_dis'],
+            );
+        DB::table('products_to_meta')->insertGetId($in_meta);
+        $next = $response['id'];
+        $pcat = 0;
+        $pcatID = 0;
+        if($response['brand_name'] && $pro)
+        {
+            $in = array(
+                'name' => $response['brand_name'],
+                'slug' => $this->slugify($response['brand_slug']),
+                'keywords' => $response['brand_tag_slug']
+                );
+                $all = DB::table('brands')->where('slug',$response['brand_slug'])->first();
+                $pcatID = 0;
+                if($all)
+                {
+                    $pcatID = $all->id;
+                }
+                else
+                {
+                $pcatID = DB::table('brands')->insertGetId($in);
+                    
+                }
+                $up = array('brand'=> $pcatID);
+                    
+                    $r = DB::table('products')->where('id',$pro)->update($up);
+            
+        }
+        if($response['parent_cat'])
+        {
+            $pcat = $response['parent_cat'][0];
+            if($pcat && isset($pcat['name']))
+            {
+                $al = DB::table('categories')->where('slug',$pcat['slug'])->first();
+                if(!$al)
+                {
+                
+                $in = array(
+                    'name'=> $pcat['name'],
+                    'slug'=> $pcat['slug'],
+                    'title'=> $pcat['meta_title'],
+                    'description'=> $pcat['meta_des'],
+                    );
+                    $pcatID = DB::table('categories')->insertGetId($in);
+                    $up = array('category_id'=> $pcatID);
+                    
+                    $r = DB::table('products')->where('id',$pro)->update($up);
+                }
+                else
+                {
+                    $pcatID = $al->id;
+                    $up = array('category_id'=> $al->id);
+                    
+                    $r = DB::table('products')->where('id',$pro)->update($up);
+                }
+            }
+        }
+        if($response['reviews'])
+        {
+            foreach($response['reviews'] as $k=>$pcat)
+            {
+                
+                $in = array(
+                    'pid'=> $pro,
+                    'status'=> 1,
+                    'name'=> $pcat['name'],
+                    'review'=> $pcat['review'],
+                    'rate'=> $pcat['rating'],
+                    'email'=> $pcat['email'],
+                    );
+                    $pcat = DB::table('rating')->insertGetId($in);
+            }
+        }
+        if($response['faq'])
+        {
+            foreach($response['faq'] as $k=>$pcat)
+            {
+                unset($pcat['id']);
+                $pcat['product_id'] = $pro;
+                
+                $in = $pcat;
+                    $pcat = DB::table('pfaqs')->insertGetId($in);
+            }
+        }
+        if($response['sub_cat'])
+        {
+            $pcat = $response['sub_cat'][0];
+            if($pcat && isset($pcat['name']))
+            {
+                $al = DB::table('sub_categories')->where('slug',$pcat['slug'])->first();
+                if(!$al)
+                {
+                $in = array(
+                    'name'=> $pcat['name'],
+                    'slug'=> $pcat['slug'],
+                    'category_id'=> $pcatID,
+                    // 'title'=> $pcat['meta_title'],
+                    // 'description'=> $pcat['meta_des'],
+                    );
+                    $pcat = DB::table('sub_categories')->insertGetId($in);
+                    $up = array('subcategory_id'=> $pcat);
+                    Product::where('id',$pro)->update($up);
+                }
+                else
+                {
+                    $up = array('subcategory_id'=> $al->id);
+                    
+                    $r = DB::table('products')->where('id',$pro)->update($up);
+                }
+            }
+        }
+    }
+    
+        //add here
+}
+}
+echo $next;
+exit();
         
        $products = Product::where('status','1')->get();
        
@@ -589,10 +954,6 @@ class FrontController extends Controller
         }
     }
     
-     function test()
-     {
-         
-     }
      function register(Request $req)
     {   
         $check_email=User::where('email',$req->email)->first();
@@ -753,8 +1114,14 @@ return redirect()->back()->with([
                 'msg_type'=>'success',
             ]);
     }
-    public function product_detail($slug)
+    public function product_detail2(Request $request)
     {
+         $url = url()->current();
+         $parsedUrl = parse_url($url);
+         $domain = $parsedUrl['host'];
+         $path = ltrim($parsedUrl['path'], '/');
+         $pathSegments = explode('/', $path);
+         $slug = implode('/', $pathSegments);
         $allcatagories = Category::where(['status'=>1])->get();
         $Slider=Slider::all();
         $product = product::where(['slug'=>$slug ])->get();
@@ -844,7 +1211,7 @@ return redirect()->back()->with([
                            "availability " => "InStock ", 
                            "seller " => [
                               "@type " => "Organization ", 
-                              "name" => "Online Shop Pakistan" 
+                              "name" => "Online Quicknow.pk" 
                            ] 
                         ] , 
    "BreadcrumbList " => array (
@@ -858,11 +1225,12 @@ return redirect()->back()->with([
                
             $view = $product[0]->view;
             $category_id = $product[0]->category_id;
-            $brand = $product[0]->brand;
+            $sub_cat_id = $product[0]->subcategory_id;
             $rproducts = product::where('category_id','=',$category_id)->where('id','!=',$product[0]->id)->limit('4')->get();
             $cate = Category::where(['id'=>$category_id])->first();
-            $brand = Brand::where(['id'=>$brand])->first();
+            $sub_cat = DB::table('sub_categories')->where('id', $sub_cat_id)->first();
             $rating = Rating::where(['status'=>1,'pid'=>$product[0]->id])->get();
+            $brand = Brand::where(['id'=>$product[0]->brand])->first();
             $rcount = Rating::where(['status'=>1,'pid'=>$product[0]->id])->count();
             $faq = Faq::where(['status'=>1,'pid'=>$product[0]->id])->get();
             $fproduct=Product::find($product[0]->id);
@@ -872,7 +1240,7 @@ return redirect()->back()->with([
             $meta_file  = 'meta.product';
             Session::put('title',$product[0]->product_name);
             $item  =  $product[0];
-            return view('front.product_detail1',compact('allcatagories','brand','sett','product','rcount','category_id','rproducts','cate','meta','faq','rating','Slider','product_detail','meta_file','item'));
+            return view('front.product_detail',compact('allcatagories','sett','product','rcount','category_id','rproducts','cate', 'sub_cat','meta','faq','rating','Slider','product_detail','meta_file','item','brand','cate'));
             
         }else{
             
@@ -883,16 +1251,191 @@ return redirect()->back()->with([
 
         return view('front.product_detail',compact('allcatagories','product','category_id','rproducts','meta','rating','Slider','cat')); 
     }
+    public function product_detail($slug)
+{
+    $allcatagories = Category::where(['status'=>1])->get();
+    $Slider=Slider::all();
+    $product = Product::where(['slug'=>$slug ])->get();
+    $rate = 0;
+    $lrate = array();
+    $r_name = '';
+    $breed = array();
+
+    $breed[] = array (
+        '@type' => 'ListItem',
+        'position' => 1,
+        'name' => 'Home',
+        'item' => url('/'),
+    );
+    $faq = array();
+
+    if(count($product) > 0){
+        $pro = $product[0];
+        $cat= Category::where(['id'=>$pro->category_id])->first();
+        $Galleries = Gallerie::where(['product_id'=>$pro->id])->get();
+
+        if($cat) {
+            $breed[] = array (
+                '@type' => 'ListItem',
+                'position' => 2,
+                'name' => $cat->name,
+                'item' => url('/category/').'/'.$pro->slug,
+            );
+        }
+
+        $all_rat = Rating::where(['status'=>1,'pid'=>$product[0]->id])->get();
+        $lrate = $rat = Rating::where(['status'=>1,'pid'=>$product[0]->id])->first();
+        $count = 0;
+        foreach($all_rat as $k=> $v) {
+            $count++;
+            $rate = $rate + $v->rate;
+        }
+        if($count)
+            $rate = $rate/$count;
+
+        if($rat){
+            $r_name = $name =$rat->name ;
+            $rateb =$rat->review ;
+            $rate1 = $rat->rate;
+        }else{
+            $name ='' ;
+            $rateb ='';
+            $rate = 0;
+        }
+
+        $sett = Setting::where('id','1')->first();
+        $meta = DB::table('products_to_meta')
+            ->where('pid', '=', $product[0]->id)
+            ->first();
+
+        if($meta) {
+            if(isset($meta->title) && !$meta->title) {
+                $meta->title = $pro->product_name;
+            }
+        }
+        if($meta) {
+            $meta->url = url('/product/').'/'.$slug;
+
+            // -------- schema fix start --------
+            $priceValidUntil = date('Y-m-d', strtotime('+180 days'));
+
+            $reviewBlock = [];
+            if ($rat) {
+                $reviewBlock[] = [
+                    "@type" => "Review",
+                    "reviewRating" => [
+                        "@type" => "Rating",
+                        "ratingValue" => (float) ($rate1 ?? 0),
+                        "bestRating"  => "5"
+                    ],
+                    "author" => [
+                        "@type" => "Person",
+                        "name"  => $r_name ?: "Anonymous"
+                    ],
+                    "reviewBody" => $rateb ?? ""
+                ];
+                
+            }
+            $pro->short_discriiption = $pro->short_discriiption;
+
+            $jayParsedAry = [
+                "@context" => "https://schema.org/",
+                "@type"    => "Product",
+                "name"     => $pro->product_name,
+                "image"    => [ url($pro->image_one) ],
+                "description" => strip_tags($pro->short_discriiption),
+                "sku"         => $pro->sku,
+                "mpn"         => $pro->mnp ?? null,
+
+                "aggregateRating" => ($count ?? 0) ? [
+                    "@type"       => "AggregateRating",
+                    "ratingValue" => round((float) $rate, 1),
+                    "reviewCount" => (int) $count
+                ] : null,
+
+                "review" => !empty($reviewBlock) ? $reviewBlock : null,
+
+                "offers" => [
+                    "@type"           => "Offer",
+                    "url"             => url('/product/').'/'.$slug,
+                    "priceCurrency"   => "PKR",
+                    "price"           => ($pro->discount_price) ? $pro->discount_price : $pro->selling_price,
+                    "priceValidUntil" => $priceValidUntil,
+                    "availability"    => "https://schema.org/InStock",
+                    "seller" => [
+                        "@type" => "Organization",
+                        "name"  => "Online Quicknow.pk"
+                    ]
+                ],
+            ];
+
+            // clean nulls
+            $jayParsedAry = array_filter($jayParsedAry, fn($v) => !is_null($v));
+            if (isset($jayParsedAry['review']) && empty($jayParsedAry['review'])) unset($jayParsedAry['review']);
+            if (isset($jayParsedAry['aggregateRating']) && empty($jayParsedAry['aggregateRating'])) unset($jayParsedAry['aggregateRating']);
+
+            $meta->scheme = $jayParsedAry;
+            // -------- schema fix end --------
+        }
+
+        $view = $product[0]->view;
+        $category_id = $product[0]->category_id;
+        $sub_cat_id = $product[0]->subcategory_id;
+        $rproducts = Product::where('category_id','=',$category_id)->where('id','!=',$product[0]->id)->limit('4')->get();
+        $cate = Category::where(['id'=>$category_id])->first();
+        $sub_cat = DB::table('sub_categories')->where('id', $sub_cat_id)->first();
+        $rating = Rating::where(['status'=>1,'pid'=>$product[0]->id])->get();
+        $brand = Brand::where(['id'=>$product[0]->brand])->first();
+        $rcount = Rating::where(['status'=>1,'pid'=>$product[0]->id])->count();
+        $faq = Faq::where(['status'=>1,'pid'=>$product[0]->id])->get();
+        $fproduct=Product::find($product[0]->id);
+        $fproduct->view = $view+1;
+        $fproduct->save();
+        $product_detail = 1;
+        $meta_file  = 'meta.product';
+        Session::put('title',$product[0]->product_name);
+        $item  =  $product[0];
+        $fproducts=Product::select('products.*')->where('Featured','1')->orderBy('products.id','DESC')->limit(10)->get();
+
+        return $this->view('product_detail', [
+            'allcatagories' => $allcatagories,
+            'sett' => $sett,
+            'product' => $product,
+            'rcount' => $rcount,
+            'category_id' => $category_id,
+            'rproducts' => $rproducts,
+            'cate' => $cate,
+            'fproducts' => $fproducts,
+            'sub_cat' => $sub_cat,
+            'meta' => $meta,
+            'faq' => $faq,
+            'rating' => $rating,
+            'Slider' => $Slider,
+            'product_detail' => $product_detail,
+            'meta_file' => $meta_file,
+            'item' => $item,
+            'brand' => $brand,
+            'cate' => $cate,
+        ]);
+
+    } else {
+        return abort(404);
+    }
+}
+
+
     public function blog_detail($slug)
     {
         $blog = Blog_Post::where(['slug'=>$slug])->get();
-        $meta = Blog_Post::where(['slug'=>$slug])->first();
+        $blogs_detail = Blog_Post::where(['slug'=>$slug])->first();
+      
         $cid = $blog[0]->category_id;
         $rblog = Blog_Post::where('category_id','=',$cid)->where('id','!=',$blog[0]->id)->get();
         $cum = Blog_Comment::where(['bid'=>$blog[0]->id])->get();
         $bcate = Blog_Category::all();
+        $meta_file  = 'meta.blog_detail';
         Session::put('title','Blog Detail');
-        return view('front.blog_detail',compact('blog','rblog','cum','bcate','meta'));
+        return view('front.blog_detail',compact('blog','rblog','cum','bcate','blogs_detail' ,'meta_file'));
     }
     public function blod_comment(Request $request)
     {
@@ -952,14 +1495,14 @@ return redirect()->back()->with([
         }
         $best =Product::select('products.*')->whereIn('id', $ids)->get();
         //dd($best);
-        return view('front.my_wishlist',compact('page','best'));
+        return $this->view('my_wishlist',array('page'=>$page,'best'=>$best,'title'=>'My Wishlist'));
     }
      public function shop(Request $request)
     {
         Session::put('title','Shop');
         $page = "shop";
-        $products =Product::select('products.*')->orderBy('view','DESC')->paginate(12);
-        return view('front.shop',compact('page','products'));
+        $products =Product::select('products.*')->where('status','1')->orderBy('view','DESC')->paginate(12);
+        return $this->view('list',array('page'=>$page,'products'=>$products,'title'=> 'Shop'));
     }
     
     public function user_register(Request $request)
@@ -976,12 +1519,15 @@ return redirect()->back()->with([
         $best =Product::where('status',1)->select('products.*')->orderBy('view','DESC')->limit(3)->get();
 
         $category_id = SubCategory::where(['slug'=>$slug ])->first();
+        if($category_id)
+        {
         $pcategory = Category::where(['id'=>$category_id->category_id ])->first();
         $cateid = $category_id->id;
          if(isset($category_id->name))
         {
          Session::put('title',$category_id->name);
         }
+        
 
         $meta = DB::table('categories_to_meta')
             ->where('cid', '=', $category_id->id)
@@ -1003,25 +1549,31 @@ return redirect()->back()->with([
                             $category = 1;
         
          $products=Product::where(['subcategory_id'=>$cateid , 'status'=>1])->paginate(20);
-         $seo =  CategoriesToMeta::where('cid','=',$cateid)->first();
+         $seo =  CategoriesToMeta::where('scid','=',$cateid)->first();
        
        
         $meta_file  = 'meta.categoy';
         $sub_cat = 1;
         return view('front.scategory_detail',compact('meta','products','category_id','best','meta_file','seo','category','sub_cat','pcategory'));
+        }
+        else
+        {
+            return abort(404);
+        }
 
        
     }
     
     public function category_detail($slug)
     {
-        
         $Slider=Slider::all();
         $categories=Category::all();
         $best =Product::select('products.*')->orderBy('view','DESC')->limit(3)->get();
-
+     
         $category_id = Category::where(['slug'=>$slug ])->first();
         $cateid = $category_id->id;
+        $sub_cat = DB::table('sub_categories')->where('category_id', $cateid)->first();
+       
          if(isset($category_id->name))
         {
          Session::put('title',$category_id->name);
@@ -1045,19 +1597,20 @@ return redirect()->back()->with([
                 $meta->scheme = $sch;
                             }
                             $category = 1;
-        
          $products=Product::where('status',1)->where(['category_id'=>$cateid , 'status'=>1])->paginate(20);
          $seo =  CategoriesToMeta::where('cid','=',$cateid)->first();
        
        
         $meta_file  = 'meta.categoy';
-        return view('front.category_detail',compact('meta','products','category_id','best','meta_file','seo','category'));
+        $page = 'Test';
+        return $this->view('list',array('page'=>$page,'products'=>$products,'title'=> 'Shop','meta_file'=>$meta_file,'meta'=>$meta,'category_id'=>$category_id,'best'=>$best,'seo'=>$seo,'category'=>$category,'sub_cat'=>$sub_cat));
 
        
     }
     
      public function blog_category($id)
     {
+        
         $cate=Blog_Category::all();
         $meta = Blog_Category::where(['slug'=>$id])->first();
         $category_id = Blog_Category::where(['slug'=>$id ])->first();
@@ -1079,26 +1632,29 @@ return redirect()->back()->with([
     }
      public function blogs()
     {
+       $slug = request()->segment(count(request()->segments()));
        
-      
+         $meta_file  = 'meta.page';
+        $pages = Pages::where(['slug'=> $slug])->get();
         Session::put('title','Blogs');
         $post=Blog_Post::all();
         $cate = Blog_Category::limit('6')->get();
-        return view('front.blog',compact('post','cate'));
+        return view('front.blog',compact('post','cate' , 'meta_file' , 'pages'));
 
        
     }
     
     public function cart()
     {
+       
         Session::put('title','Cart');
-        return view('front.cart');
+        return $this->view('cart');
     }
     
     public function contact()
     {
         Session::put('title','Contact Us');
-        return view('front.contact');
+        return $this->view('contact');
     }
     
     public function track_order(Request $request)
@@ -1113,16 +1669,17 @@ return redirect()->back()->with([
     
     public function checkout()
     {
-        //  if(Session::get('user')){
-        //       $uid = Session::get('user')['id'];
-        // $user = User::where(['id'=>$uid ])->get();
-        //      Session::put('title','Order Checkout');
-        // return view('front.order',compact('user'));
-        //  }else{
+       
+         if(Session::get('user')){
+              $uid = Session::get('user')['id'];
+        $user = User::where(['id'=>$uid ])->get();
+             Session::put('title','Order Checkout');
+        return $this->view('checkout',array('user'=>$user));
+         }else{
         
         Session::put('title','Checkout');
-        return view('front.order');
-        //  }
+        return $this->view('checkout');
+         }
     }
      public function guest_checkout()
     {
@@ -1152,36 +1709,69 @@ return redirect()->back()->with([
         return view('front.orderpage',compact('product'));
     }
 
+    public function find($slug)
+    {
+        $pages = Pages::where(['slug'=>$slug])->first();
+        $product = DB::table('products')->where('slug', $slug)->first();
+        $cat = DB::table('categories')->where('slug', $slug)->first();
+        $scat = DB::table('sub_categories')->where('slug', $slug)->first();
+        if(isset($product->slug) && $product->slug == $slug)
+        { 
+            return $this->product_detail($slug);
+        }
+        if(isset($cat->slug) && $cat->slug == $slug)
+        {
+            
+            return $this->category_detail($slug);
+        }
+        if(isset($scat->slug) && $scat->slug == $slug)
+        {
+            return $this->scategory_detail($slug);
+        }
+        if(isset($pages->slug) && $pages->slug == $slug)
+        {
+            return $this->page_detail($slug);
+        }
+        return abort(404);
+    }
     public function page_detail($slug)
     {
+        $Slider=Slider::all();
+        $size = Size::all();
+        $colors = Colors::all();
+        $shap = Shap::all();
+        $meta_file  = 'meta.page';
+       $pages = Pages::where(['slug'=>$slug])->get();
+      
+        $title = ''; 
         
+        if(isset($pages[0]->name))
+        {
+            $title = $pages[0]->name;
+         Session::put('title',$pages[0]->name);
+        }
+        if($title)
+        {
+        return $this->view('dynamicpage',array('title'=>$title,'pages'=> $pages,'slug'=>$slug,'Slider'=> $Slider,'meta_file'=>$meta_file,'size'=> $size,'colors'=>$colors,'shap'=> $shap));
+        }
+        else
+        {
+            return abort(404);
+        }
+    }
+    
+    public function about(Request $request)
+    {
+        $products=Product::select('products.*')->orderBy('products.id','DESC')->get();
+        $categories=Category::all();
         $Slider=Slider::all();
         $size = Size::all();
         $colors = Colors::all();
         $shap = Shap::all();
         $meta = '';
-       $pages = Pages::where(['slug'=>$slug])->get();
-       
-        $title = ''; 
-        if(isset($pages[0]->name))
-        {
-         Session::put('title',$pages[0]->name);
-        }
-        return view('front.dynamicpage',compact('title','pages','slug','Slider','meta','size','colors','shap'));
+         Session::put('title','About us');
+        return view('front.about',compact('Slider','meta','size','colors','shap','products','categories'));
     }
-    
-    // public function about(Request $request)
-    // {
-    //     $products=Product::select('products.*')->orderBy('products.id','DESC')->get();
-    //     $categories=Category::all();
-    //     $Slider=Slider::all();
-    //     $size = Size::all();
-    //     $colors = Colors::all();
-    //     $shap = Shap::all();
-    //     $meta = '';
-    //      Session::put('title','About us');
-    //     return view('front.about',compact('Slider','meta','size','colors','shap','products','categories'));
-    // }
     public function learn(Request $request)
     {
         $setting=Learn_setting::all();
@@ -1203,26 +1793,68 @@ return redirect()->back()->with([
     //         Session::put('title','Checkout');
     //         return view('front.checkout',compact('setting'));
     // }
+private function sendEmailWithSendGrid($toEmail, $toName, $subject, $content) {
+    $apiKey = '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'; // Yahan apna SendGrid API Key daalain
 
-    private function send_grid($to,$subj, $html)
-    {
-        $arrayEmails = [$to];
-$emailSubject = $subj;
-$emailBody = $html;
-$_SESSION['email_msg'] = $html ;
+    $emailData = [
+        'personalizations' => [
+            [
+                'to' => [
+                    ['email' => $toEmail, 'name' => $toName]
+                ],
+                'subject' => $subject
+            ]
+        ],
+        'from' => [
+            'email' => 'info@quicknow.pk',
+            'name' => 'Quicknow'
+        ],
+        'content' => [
+            [
+                'type' => 'text/html',
+                'value' => $content
+            ]
+        ]
+    ];
 
-Mail::send('emails.normal',
-	['html' => $emailBody],
-	function($message) use ($arrayEmails, $emailSubject) {
-		$message->to($arrayEmails)
-        ->subject($emailSubject)->setBody($_SESSION['email_msg'], 'text/html');
-        unset($_SESSION['email_msg']);
-	}
-);
+    $ch = curl_init();
+    curl_setopt($ch, CURLOPT_URL, 'https://api.sendgrid.com/v3/mail/send');
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_POST, true);
+    curl_setopt($ch, CURLOPT_HTTPHEADER, [
+        'Authorization: Bearer ' . $apiKey,
+        'Content-Type: application/json'
+    ]);
+    curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($emailData));
+
+    $response = curl_exec($ch);
+    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    $error = curl_error($ch);
+    curl_close($ch);
+
+    if ($httpCode == 202) {
         return true;
-
-
+        
+    } else {
+        return $response;
     }
+}
+
+    private function send_grid($to, $subj, $html)
+{
+    return $this->sendEmailWithSendGrid($to, ' ', $subj, $html);
+    $arrayEmails = [$to];
+    $emailSubject = $subj;
+
+    Mail::send([], [], function ($message) use ($arrayEmails, $emailSubject, $html) {
+        $message->to($arrayEmails)
+                ->subject($emailSubject)
+                ->setBody($html, 'text/html'); // HTML content set karne ke liye
+    });
+
+    return true;
+}
+
     public function order_submit(Request $request)
     {
         
@@ -1257,7 +1889,7 @@ Mail::send('emails.normal',
                     
                 ];
                 $html = view('emails.order', $data)->render();
-                $this->send_grid($to_email,'Order Email', $html);
+                $r = $this->send_grid($to_email,'Order Email', $html);
                 $setting = DB::table('setting')
     ->where('id', '=', '1')
     ->first();
@@ -1304,13 +1936,15 @@ Mail::send('emails.normal',
                     'order' =>$order_data ,
                     
                 ];
+                
+                
                 $html = view('emails.order', $data)->render();
                 $this->send_grid($to_email,'Order Email', $html);
                 $setting = DB::table('setting')
     ->where('id', '=', '1')
     ->first();
             $to = $setting->email;
-            $this->send_grid($to,'Order Email', $html);
+            $r = $this->send_grid($to,'Order Email', $html);
             }
         
             Session::forget('cart');
@@ -1390,7 +2024,7 @@ Mail::send('emails.normal',
             $pro = $product[0];
 
             return redirect('/product/'.$product[0]->slug)->with([
-                'msg'=>'Review submit successfully',
+                'message'=>'Review submit successfully',
                 'msg_type'=>'success',
             ]);
     }
@@ -2249,50 +2883,101 @@ Mail::send('emails.normal',
 
     public function brand_detail($slug)
     {
+        
+        
+        
+        
         $brands=Brand::all();
         $Slider=Slider::all();
         $categories=Category::all();
 
         $brand_id = brand::where(['slug'=>$slug , 'status'=>1])->get();
-        // dd($brand_id[0]->id);
-        $rproducts = product::where(['brand_id'=>$brand_id[0]->id , 'status'=>1])->get();
-
-        return view('front.result_detail',compact('rproducts','categories','brands'));
+       
+        $brand = array();
+        if(isset($brand_id[0]))
+        {
+            $brand = $brand_id[0];
+        }
+        $meta_file  = 'meta.brand';
+        $rproducts = product::where(['brand'=>$brand_id[0]->id , 'status'=>1])->get();
+        if($brand)
+        return view('front.brand_detail',compact('rproducts','categories','brands','brand','meta_file' ));
+        else
+        abort(404);
+    }
+    
+    
+     public function brandstags($id)
+    {
+        $brands=Brand::all();
+        $Slider=Slider::all();
+        $categories=Category::all();
+        $tags = $btags = trim(str_replace('-', ' ', $id));
+        $brand_id = Brand::where('keywords', 'like', '%'.$id.'%')->get();
+       
+        $brand = array();
+        if(isset($brand_id[0]))
+        {
+            $brand = $brand_id[0];
+        }
+        $rproducts =  array();
+        if(isset($brand_id[0]))
+        {
+        $rproducts = product::where(['brand'=>$brand_id[0]->id , 'status'=>1])->get();
+        }
+        
+        
+        $product = $rproducts; 
+        // dd($product);
+        $meta_file  = 'meta.brand_tag';
+        if($brand)
+        return view('front.brand_tags',compact('rproducts','categories','brands','brand','meta_file','btags','product'));
+        else
+        abort(404);
     }
 
     public function tags_detail($slug)
     {
         $Slider=Slider::all();
         $categories=Category::all();
+        $nslug = $slug;
 
-        $rproducts = product::where('tags', 'like', '%'.$slug.'%')->get();
+
+    $rproducts = Product::where('tags', 'like', '%' . $nslug . '%')->get();
+    
+
+    if ($rproducts->isEmpty() || $rproducts === null) {
+        $nslug = preg_replace("/-/", " ", $slug);
+        $rproducts = Product::where('tags', 'like', '%' . $nslug . '%')->get();
+    }
         $product = $rproducts; 
+        // dd($product);
 
         $tags = str_replace('-', ' ', $slug);
         $meta_file  = 'meta.product_tag';
 
-        return view('front.result_detail',compact('rproducts','categories','tags','slug','meta_file','product'));
+        return $this->view('tags',array('products'=>$rproducts,'title'=>$nslug,'tags'=> $tags,'slug'=> $slug,'meta_file'=> $meta_file,'product'=>$product,'pagination'=>0));
     }
 
-    // public function search_detail(Request $slug)
-    // {
-    //     $brands=Brand::all();
-    //     $Slider=Slider::all();
-    //     $categories=Category::all();
-    //     // return $slug->input();
-    //     $rproducts = product::where('product_name', 'like', '%'.$slug->input('q').'%')->get();
-
-    //     return view('front.result_detail',compact('rproducts','categories','brands'));
-    // }
     public function search_detail(Request $slug)
+    {
+        $brands=Brand::all();
+        $Slider=Slider::all();
+        $categories=Category::all();
+        // return $slug->input();
+        $rproducts = product::where('product_name', 'like', '%'.$slug->input('q').'%')->where('status','1')->get();
+
+        return view('front.result_detail',compact('rproducts','categories','brands'));
+     }
+    public function search_detail1($slug)
     {
         // $brands=Brand::all();
         $Slider=Slider::all();
         $categories=Category::all();
         // return $slug->input();
-        $rproducts = product::where('product_name', 'like',"%{$slug->text}%")->get();
+        $rproducts = product::where('status',1)->where('product_name', 'like', '%'.$slug.'%')->get();
         // $slug = $rproducts->slug;
         $search = 1;
-        return view('front.result_detail',compact('rproducts','categories','search'));
+        return view('theme1.search',compact('rproducts','categories','search'));
     }
 }

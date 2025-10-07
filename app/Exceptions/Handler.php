@@ -7,6 +7,19 @@ use Throwable;
 
 class Handler extends ExceptionHandler
 {
+    // app/Exceptions/Handler.php
+
+    public function render($request, Throwable $exception)
+    {
+        if ($this->isHttpException($exception)) {
+            if ($exception->getStatusCode() == 404) {
+                return redirect('/'); // Home page par redirect
+            }
+        }
+    
+        return parent::render($request, $exception);
+    }
+
     /**
      * A list of the exception types that are not reported.
      *
@@ -38,4 +51,5 @@ class Handler extends ExceptionHandler
             //
         });
     }
+    
 }

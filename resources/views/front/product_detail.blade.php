@@ -5,94 +5,56 @@ use App\Models\Admins\Category;
 use App\Models\product;
 use App\Models\Admins\Gallerie;
 use App\Models\Admins\Rating;
+$faq= DB::table('pfaqs')->where('product_id',$item->id)->get();
+$files = Gallerie::where('product_id',$item->id)->get();
   ?>
 
 
 @section('content')
 @foreach($product as $item)
-<style>
-.reviews__comment--content a{
-    margin:3px 0px;
-}
-.item_row {
-    padding: 10px 10px;
-    background: #f2f2f2;
-    align-items: baseline;
-}
-    
-.item_row h5 {
-    font-weight: 500;
-    width: 180px;
-    margin: 0;
-}
-.transparent_row{
-    padding: 10px 10px;
-    background: transparent;
-    align-items: baseline;
-}
-.transparent_row h5{
-    font-weight: 500;
-    width: 180px;
-    margin: 0;
-}
-@media (max-width: 680px){
-    .item_row h5 {
-    font-weight: 500;
-    width: 200px;
-    margin: 0;
-    font-size:15px;
-}
-.transparent_row h5 {
-    font-weight: 500;
-    width: 200px;
-    margin: 0;
-    font-size:15px;    
-}
-.transparent_row{
-    font-size:12px;
-}
-.item_row{
-    font-size:12px;
-}
-}
-</style>
-<!-- Page Header Start -->
-   <div class="container-fluid bg-secondary mb-5">
-        <div class="d-flex flex-column align-items-center justify-content-center" style="min-height: 300px">
-            <h1 class="font-weight-semi-bold text-uppercase mb-3">{{$item->product_name}}</h1>
-            <div class="d-inline-flex">
-               <ul class="breadcrumb" itemscope itemtype="https://schema.org/BreadcrumbList" style=" background-color: transparent; ">
-                        <li itemprop="itemListElement" itemscope
-                            itemtype="https://schema.org/ListItem" class="breadcrumb-item"><a itemtype="https://schema.org/Thing"
-                                                                      itemprop="item"  href="/"><span itemprop="name"><i class="icofont icofont-ui-home"></i> Home</span></a></a>
-                            <meta itemprop="position" content="1" />
-                        </li>
-                        @if($cate)
-                        <li itemprop="itemListElement" itemscope
-                              itemtype="https://schema.org/ListItem" class="breadcrumb-item" >
-                                    <a itemtype="https://schema.org/Thing"
-                                       itemprop="item" href="/category/{{$cate->slug}}">
-                                        <span itemprop="name">{{$cate->name}}</span>  </a>
-                                    <meta itemprop="position" content="2" />
-                                    </li>
-                                    @endif
-                                                        <li itemprop="itemListElement" itemscope
-                            itemtype="https://schema.org/ListItem" class="breadcrumb-item" class="breadcrumb-item active" >
-                            <a itemtype="https://schema.org/Thing"
-                               itemprop="item" href="/product/{{$item->slug}}">
-                                <span itemprop="name">{{$item->product_name}}</span>
-                                <meta itemprop="position" content="3" />
-                            </a>
-                        </li>
-                   </ul>
+<!-- Breadcrumb Start -->
+    <div class="container-fluid">
+        <div class="row px-xl-5">
+            <div class="col-12">
+                <nav class="breadcrumb bg-light mb-30">
+                    <a class="breadcrumb-item text-dark" href="/">Home</a>
+                     @if($cate)
+                    <a class="breadcrumb-item text-dark" href="/{{$cate->slug}}">{{$cate->name}}</a>
+                    @endif
+                    @if($sub_cat)
+                     <a class="breadcrumb-item text-dark" href="/{{$sub_cat->slug}}">{{$sub_cat->name}}</a>
+                      @endif
+                   
+                    <span class="breadcrumb-item active">{{$item->product_name}}</span>
+                </nav>
             </div>
         </div>
     </div>
-    <!-- Page Header End -->
-
-
+    <!-- Breadcrumb End -->
     <!-- Shop Detail Start -->
-                <?php
+    <div class="container-fluid">
+        <div class="row px-xl-5">
+            <div class="col-lg-5 mb-30">
+                <div id="product-carousel" class="carousel slide" data-ride="carousel">
+                    <div class="carousel-inner bg-light">
+                        <div class="carousel-item active">
+                            <img class="w-100 h-100" src="/{{$item->image_one}}" alt="Image">
+                        </div>
+                        @foreach($files as $k=> $v)
+                        <div class="carousel-item">
+                            <img class="w-100 h-100" src="{{url($v->photo)}}" alt="Image">
+                        </div>
+                        @endforeach
+                    </div>
+                    <a class="carousel-control-prev" href="#product-carousel" data-slide="prev">
+                        <i class="fa fa-2x fa-angle-left text-dark"></i>
+                    </a>
+                    <a class="carousel-control-next" href="#product-carousel" data-slide="next">
+                        <i class="fa fa-2x fa-angle-right text-dark"></i>
+                    </a>
+                </div>
+            </div>
+            <?php
                     $count = 0;
                     $totalrating = 0;
                     $getreview = DB::table('rating')->where('status', '1')->where('pid',
@@ -108,202 +70,284 @@ use App\Models\Admins\Rating;
                     $finalresult = round($totalrating);
                 ?>
                 <?php }?>
-                 
-    <div class="container-fluid py-5">
-        <div class="row px-xl-5">
-            <div class="col-lg-5 pb-5">
-                <div id="product-carousel" class="carousel slide" data-ride="carousel">
-                    <div class="carousel-inner border">
-                        <div class="carousel-item active">
-                            <img class="w-100 h-100" src="/{{$item->image_one}}" alt="Image">
-                        </div>
-                        <?php $Galleries = Gallerie::where(['product_id'=>$item->id])->get(); ?>
-                        @foreach($Galleries as $Gallerie)
-                        <div class="carousel-item">
-                            <img class="w-100 h-100" src="{{$Gallerie->photo}}" alt="Image">
-                        </div>
-                        @endforeach
-                    </div>
-                    <a class="carousel-control-prev" href="#product-carousel" title="prev" data-slide="prev">
-                        <i class="fa fa-2x fa-angle-left text-dark"></i>
-                    </a>
-                    <a class="carousel-control-next" href="#product-carousel" title="next" data-slide="next">
-                        <i class="fa fa-2x fa-angle-right text-dark"></i>
-                    </a>
-                </div>
-            </div>
-            
-            
-            
 
-            <div class="col-lg-7 pb-5">
-                <h3 class="font-weight-semi-bold">{{$item->product_name}}</h3>
-                <div class="d-flex mb-3">
-                    <div class="text-primary mr-2">
-                        <small class="fas fa-star"></small>
+            <div class="col-lg-7 h-auto mb-30">
+                <div class="h-100 bg-light">
+                    <h3>{{$item->product_name}}</h3>
+               <div class="flexx">
+                    <h3 class="width font-weight-semi-bold mb-4">Rs:</h3>
+                    <h3 class="">{{$item->discount_price}}</h3>
                     </div>
-                    <?php 
-                    $data=Rating::where('pid',$item->id)->where('status',1)->sum('rate');
-                    $count = Rating::where(['pid'=>$item->id])->where('status',1)->count();
-                    if($count && $data){
-                        $rate = $data/$count;
-                    }else{
-                    $rate = 0;
+                    <p class="mb-4">{{ (isset($meta->description)?$meta->description:'') }}</p>
+                    <style>
+                    .width{
+                        
+                        width:30%;
                     }
-                    ?>
-                    <small class="pt-1">({{number_format($rate,2)}}/5.00)</small>
-                </div>
-                <h3 class="font-weight-semi-bold mb-4">Rs:{{$item->discount_price}}</h3>
-                <p class="mb-4"><?= $item->short_discriiption; ?></p>
-                <span class="row item_row"><h5>Size :</h5>{{$item->size}}</span>
-                <span class="row transparent_row"><h5>Made in :</h5>{{$item->made_in}}</span>
-                <span class="row item_row"><h5>Availablity :</h5><spam><?php if($item->product_quantity > 0){?>In Stock<?php }else{?>Out Of Stock<?php }?></span>
-                <span class="row transparent_row"><h5>Quantity :</h5>{{$item->product_quantity}}</span>
-                <span class="row item_row"><h5>Shipping :</h5>2 - 3 Business Days (in Pakistan)</span>
-                <div class="d-flex align-items-center mb-4 pt-2">
-                    <div class="input-group quantity mr-3" style="width: 130px;">
-                        <div class="input-group-btn">
+                    .flexx h3{
+                        margin:0!important;
+                    }
+                    .flexx{
+                        display:flex;
+                        align-items:center;
+                        border: 1px solid #8080801f;                 
+                        padding: 7px 10px;
+                    }
+                        .bd{
+                       display: flex;
+                       align-items: center;
+                       padding: 10px;
+    
+                   }
+                    .bd p{
+                       width: 30%;
+                        margin: 0!important;
+               }
+                .tags{
+                   margin:2px 0px;
+                 }
+@media screen and (max-width: 700px) {
+.bd p{
+    width:40%!important;
+  }
+  div{
+      overflow: hidden;
+  }
+}
+
+                    </style>
+                         <div class="d-flex mb-3">
+                        <div class="text-primary mr-2">
+                            <?php
+                            if(isset($finalresult))
+                            {
+                            for($i = 1 ; $i <=$finalresult ;$i++ )
+                            {
+                                ?>
+                            <small class="fas fa-star"></small>
+                            <?php
+                            }
+                            }
+                            ?>
+                        </div>
+                        <small class="pt-1">(<?= count($getreview); ?> Reviews)</small>
+                    </div>
+                    @if(isset($cate) && $cate)
+                    <div class="brand_us">
+                        <div class="bd" style="border: 1px solid #8080801f; ">
+                          <p><b>Category:</b></p><a href="/{{$cate->slug}}">{{$cate->name}}</a><br>
+                        </div>
+                    
+                    </div>
+                    @endif
+                    <div class="bd">
+                    <p><b>Size:</b></p>{{$item->size}}</p>
+                    </div>
+                    <div class="brand_us">
+                        <div class="bd" style="border: 1px solid #8080801f; ">
+                          <p><b>Made in :</b></p>{{$item->made_in}}<br>
+                    
+                    </div>
+                    
+                    @if(isset($brand->name) && $brand->name)
+                    <div class="brand_us">
+                        <div class="bd" style="border: 1px solid #8080801f; ">
+                          <p><b>Brand:</b></p><a href="{{url('brand');}}/{{$brand->slug}}">{{$brand->name}}</a><br>
+                        </div>
+                    
+                    </div>
+                    @endif
+                    <div class="brand_us">
+                        <div class="bd">
+                          <p><b>Shipping :</b></p> 2 to 3 days in pakistan<br>
+                        </div>
+                    </div>
+                    
+                    </div>
+                    <div class="brand_us">
+                        <div class="bd" style="border: 1px solid #8080801f; ">
+                            @if(!$item->status)
+                            <p><b>Avalibility :</b></p> <span class="badge bg-danger">Out of stock</span>
+                            @else
+                          <p><b>Avalibility :</b></p> <span class="badge bg-primary">In stock</span>
+                          @endif
+<br>
+                    
+                    </div>
+                    
+                    </div>
+                    <div class="d-flex align-items-center mb-4 pt-2">
+                        <div class="input-group quantity mr-3" style="width: 130px;">
+                            <div class="input-group-btn">
                             <button class="btn btn-primary btn-minus" title="minus">
                             <i class="fa fa-minus"></i>
                             </button>
                         </div>
-                        <input type="text" class="form-control bg-secondary text-center text-white" title="qty" id="qty" name="qty" value="1">
+                        <input type="text" class="form-control bg-secondary text-center text-black" title="qty" id="qty" name="qty" value="1">
                         <div class="input-group-btn">
                             <button class="btn btn-primary btn-plus" title="plus">
                                 <i class="fa fa-plus"></i>
                             </button>
                         </div>
                     </div>
-                    <button class="btn btn-primary px-3 add-to-cart" title="cart"  id="{{$item->id}}"><i class="fa fa-shopping-cart mr-1"></i> Add To Cart</button><br><br>
-                  
-                </div>
-                <div class="d-flex pt-2">
+                    <button @if(!$item->status)disabled="true"@endif class="btn btn-primary px-3 add-to-cart" title="cart"  id="{{$item->id}}"><i class="fa fa-shopping-cart mr-1"></i> Add To Cart</button><br><br>
+                    </div>
+                    <div class="d-flex pt-2">
+                        <?php $setting = DB::table('setting')
+    ->where('id', '=', '1')
+    ->first();
+$cate = DB::table('categories')->get();
+?>
                    
                     <div class="d-inline-flex">
-                         <button class="btn btn-primary px-3 add-to-cart-item1" id="{{$item->id}}" href="#"><i class="fa fa-shopping-bag mr-1"></i>Buy Now</button>
-                    <button onclick="window.location='https://api.whatsapp.com/send?phone=<?= $sett->phone?>&amp;text=Hello, I want to purchase:*{{$item->product_name}}* Price:*{{$item->discount_price}} URL:*{{ url('/'); }}/{{$item->slug}}* Thank You !';" class="btn btn-primary px-3 ml-2" ><i class="fa fa-phone mr-1"></i> Chat On Whatsapp</button>
+                         <button class="btn btn-primary px-3 add-to-cart-item1" id="{{$item->id}}" href="#" @if(!$item->status)disabled="true"@endif><i class="fa fa-shopping-bag mr-1"></i>Buy Now</button>
+                    <button onclick="window.location='https://api.whatsapp.com/send?phone=<?= $setting->phone?>&amp;text=Hello, I want to purchase:*{{$item->product_name}}* Price:*{{$item->discount_price}} URL:*{{ url('/'); }}/{{$item->slug}}* Thank You !';" class="btn btn-primary px-3 ml-2" ><i class="fa fa-phone mr-1"></i> Chat On Whatsapp</button>
+                    </div>
+                    @php
+                    $str = 'Add to wishlist';
+                    if(isset($_COOKIE['wishlist']) && in_array($item->id,json_decode($_COOKIE['wishlist'])))
+                    {
+                    $str = 'Remove from wishlist';
+                    }
+                    @endphp
+                    <div class="d-inline-flex">
+                         <a style="margin-left:7px;" class="btn btn-primary px-3 " href="{{ url('wishlist/'.$item->id); }}" id="{{$item->id}}" href="#"><i class="fas fa-heart mr-1"></i>{{$str}}</a>
+                    </div>
+                </div>
+                    <div class="d-flex pt-2">
+                        <strong class="text-dark mr-2">Share on:</strong>
+                        <div class="d-inline-flex">
+                            <a class="text-dark px-2" href="https://www.facebook.com/sharer/sharer.php?u={{ url($item->slug) }}">
+                                <i class="fab fa-facebook-f"></i>
+                            </a>
+                            <a class="text-dark px-2" href="https://twitter.com/intent/tweet?text={{ url($item->slug) }}">
+                                <i class="fab fa-twitter"></i>
+                            </a>
+                            <a class="text-dark px-2" href="https://www.linkedin.com/shareArticle?mini=true&url={{ url($item->slug) }}">
+                                <i class="fab fa-linkedin-in"></i>
+                            </a>
+                            <a class="text-dark px-2" href="https://pinterest.com/pin/create/button/?url=&media={{ url($item->slug) }}">
+                                <i class="fab fa-pinterest"></i>
+                            </a>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
-        <div class="row px-xl-5">
+        <div class="row px-xl-5 w-100">
             <div class="col">
-                <div class="nav nav-tabs justify-content-center border-secondary mb-4">
-                    <a class="nav-item nav-link active" data-toggle="tab" href="#tab-pane-1">Description</a>
-                    <a class="nav-item nav-link" data-toggle="tab" href="#tab-pane-2">Tags & Keywords</a>
-                    <a class="nav-item nav-link" data-toggle="tab" href="#tab-pane-3">Reviews ({{$rcount}})</a>
-                </div>
-                <div class="tab-content">
-                    <div class="tab-pane fade show active" id="tab-pane-1">
-                        <h4 class="mb-3">Product Description</h4>
-                        <p><?= $item->product_details?></p>
+             <div class="bg-light p-30">
+    <div class="nav nav-tabs mb-4">
+        <a class="nav-item nav-link text-dark active" data-toggle="tab" href="#tab-pane-1">Description</a>
+        <a class="nav-item nav-link text-dark" data-toggle="tab" href="#tab-pane-5">Tag's</a>
+        <a class="nav-item nav-link text-dark" data-toggle="tab" href="#tab-pane-3">Reviews ({{$rcount}})</a>
+        <a class="nav-item nav-link text-dark" data-toggle="tab" href="#tab-pane-4">FAQ</a>
+    </div>
+    <div class="tab-content">
+        <div class="tab-pane fade show active" id="tab-pane-1">
+            <h4 class="mb-3">Product Description</h4>
+            <?= $item->product_details ?>
+        </div>
+        <div class="tab-pane fade" id="tab-pane-4">
+            <h4 class="mb-3">FAQ</h4>
+            <div class="accordion" id="accordionExample">
+                @foreach($faq as $k=> $v)
+                <div class="card">
+                    <div class="card-header" id="faq{{$k}}">
+                        <h2 class="mb-0">
+                            <button class="btn btn-link" type="button" data-toggle="collapse" data-target="#collapse{{$k}}" aria-expanded="true" aria-controls="collapse{{$k}}">
+                                {{$v->question}}
+                            </button>
+                        </h2>
                     </div>
-                    <div class="tab-pane fade" id="tab-pane-2">
-                        <div class="items-Product-Tags">
-                        <div class="reviews__comment--content">
-                                        <h3>Tag's</h3>
-                                        <?php 
-                                        $tags = explode(',',$item['tags']);
-                                        foreach($tags as $k=> $v){
-                                            if(!empty($v))
-                                                {
-                                            // $tag = str_replace(' ', '-', $v);
-                                        ?>
-                                        <a href="/product-tag/{{$v}}" class="btn btn-primary"><?= $v; ?></a>
-                                        <?php }}?>
-                                    </div>
-                    </div>
-                    </div>
-                    <div class="tab-pane fade" id="tab-pane-3">
-                        <div class="row">
-                            <div class="col-md-6">
-                                <h4 class="mb-4">{{$rcount}} Reviews on {{$item->product_name}}</h4>
-                                @foreach($rating as $v)
-                                <div class="media mb-4">
-                                    <img src="/public/images/user.webp" width="100px" height="100px" alt="Image" class="img-fluid mr-3 mt-1" style="width: 45px;">
-                                    <div class="media-body">
-                                        <h6>{{$v->name}}<small> - <i>{{date(" F d Y ",strtotime($v->created_at))}}</i></small></h6>
-                                        <p>{{$v->review}}</p>
-                                    </div>
-                                </div>
-                                @endforeach
-                            </div>
-                            <div class="col-md-6">
-                                <h4 class="mb-4">Leave a review</h4>
-                               
-                                <form action="/rating_submit" method="POST">
-                                                @csrf
-                                                <input type="hidden" name="pid" value="{{$item->id}}">
-                                    <div class="form-group">
-                                        <label for="message">Your Review *</label>
-                                        <textarea id="message" cols="10" rows="3" class="form-control" name="review" required  placeholder="Your Comments...."></textarea>
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="name">Your Name *</label>
-                                        <input type="text" class="form-control" id="name"  name="name" required placeholder="Your Name....">
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="email">Your Email *</label>
-                                        <input type="email" class="form-control" id="email" name="email" required placeholder="Your Email....">
-                                    </div
-                                    <div class="form-group">
-                                        <label for="email">Rating *</label>
-                                        <select class="form-control" name="rating">
-                                            <option value="5">5 Star(Excellent)</option>
-                                            <option value="4">4 Star(Better)</option>
-                                            <option value="3">3 Star(Good)</option>
-                                            <option value="2">2 Star(Poor)</option>
-                                            <option value="1" >1 Star(Very bad)</option>
-                                        </select>
-                                    </div>
-                                    
-                                    <div class="form-group mb-0">
-                                        <input name="submit" type="submit" value="Leave Your Review" class="btn btn-primary px-3">
-                                    </div>
-                                </form>
-                            </div>
+                    <div id="collapse{{$k}}" class="collapse {{ ($k == 0)?'show':''; }}" aria-labelledby="faq{{$k}}" data-parent="#accordionExample">
+                        <div class="card-body">
+                            {{$v->ans}}
                         </div>
                     </div>
                 </div>
+                @endforeach
+            </div>
+        </div>
+        <div class="tab-pane fade" id="tab-pane-5">
+            <h4 class="mb-3">Tag's</h4>
+            <?php 
+            $tags = explode(',',$item['tags']);
+            foreach($tags as $k=> $v){
+                if(!empty($v)) {
+                     $v_clean = preg_replace("/\s+/", "-", $v);
+                     $nslug = preg_replace("/-/", " ", $v);
+                     
+                    
+            ?>
+            <a href="/tags/{{$v_clean}}" class="tags btn btn-primary"><?= $nslug; ?></a>
+            <?php }}?>
+        </div>
+        <div class="tab-pane fade" id="tab-pane-3">
+            <div class="row">
+                <div class="col-md-6">
+                    <h4 class="mb-4">{{$rcount}} Reviews on {{$item->product_name}}</h4>
+                    @foreach($rating as $v)
+                    <div class="media mb-4">
+                        <img src="/public/images/user.png" width="100px" height="100px" alt="Image" class="img-fluid mr-3 mt-1" style="width: 45px;">
+                        <div class="media-body">
+                            <h6>{{$v->name}}<small> - <i style="display:none">{{date(" F d Y ",strtotime($v->created_at))}}</i></small></h6>
+                            <p>{{$v->review}}</p>
+                        </div>
+                    </div>
+                    @endforeach
+                </div>
+                <div class="col-md-6">
+                    <h4 class="mb-4">Leave a review</h4>
+                    <form action="/rating_submit" method="POST">
+                        @csrf
+                        <input type="hidden" name="pid" value="{{$item->id}}">
+                        <div class="form-group">
+                            <label for="message">Your Review *</label>
+                            <textarea id="message" cols="10" rows="3" class="form-control" name="review" required placeholder="Your Comments...."></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="name">Your Name *</label>
+                            <input type="text" class="form-control" id="name" name="name" required placeholder="Your Name....">
+                        </div>
+                        <div class="form-group">
+                            <label for="email">Your Email *</label>
+                            <input type="email" class="form-control" id="email" name="email" required placeholder="Your Email....">
+                        </div>
+                        <div class="form-group">
+                            <label for="email">Rating *</label>
+                            <select class="form-control" name="rating">
+                                <option value="5">5 Star(Excellent)</option>
+                                <option value="4">4 Star(Better)</option>
+                                <option value="3">3 Star(Good)</option>
+                                <option value="2">2 Star(Poor)</option>
+                                <option value="1" >1 Star(Very bad)</option>
+                            </select>
+                        </div>
+                        <div class="form-group mb-0">
+                            <input name="submit" type="submit" value="Leave Your Review" class="btn btn-primary px-3">
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
             </div>
         </div>
     </div>
     <!-- Shop Detail End -->
-
-
-    <!-- Products Start -->
-    <div class="container-fluid py-5">
-        <div class="text-center mb-4">
-            <h2 class="section-title px-5"><span class="px-2">You May Also Like</span></h2>
-        </div>
+<div class="container-fluid pt-5 pb-3">
+        <h2 class="section-title position-relative text-uppercase mx-xl-5 mb-4"><span class="bg-secondary pr-3">YOU MAY ALSO LIKE
+</span></h2>
         <div class="row px-xl-5">
-            <div class="col">
-                <div class="owl-carousel related-carousel">
-                 @if(!empty($rproducts) && $rproducts->count())
-                  @foreach ($rproducts as  $k=>$aproduct)
-                  @if($aproduct->status == 1)
-                    <div class="card product-item border-0">
-                        <div class="card-header product-img position-relative overflow-hidden bg-transparent border p-0">
-                            <img class="img-fluid w-100" src="{{asset($aproduct->image_one)}}" width="319px" height="319px" alt="">
-                        </div>
-                        <div class="card-body border-left border-right text-center p-0 pt-4 pb-3">
-                            <h6 class="text-truncate mb-3">{{$aproduct->product_name}}</h6>
-                            <div class="d-flex justify-content-center">
-                                <h6>RS {{$aproduct->discount_price}}</h6><h6 class="text-muted ml-2"><del>RS {{$aproduct->selling_price}}</del></h6>
-                            </div>
-                        </div>
-                        <div class="card-footer d-flex justify-content-between bg-light border">
-                            <a href="/product/{{$aproduct->slug}}" class="btn btn-sm text-dark p-0"><i class="fas fa-eye text-primary mr-1"></i>View Detail</a>
-                            <a  class="btn btn-sm text-dark p-0 add-to-cart-item" id="{{$aproduct->id}}"><i class="fas fa-shopping-cart text-primary mr-1"></i>Add To Cart</a>
-                        </div>
-                    </div>
-                    @endif
-                   @endforeach
-                   @endif
-                </div>
-            </div>
+            @foreach ($rproducts as  $k=>$v)
+            @include('includes/parts/product_box')
+            @endforeach
         </div>
     </div>
+<!--Feater end-->
     <!-- Products End -->
 @endforeach
 <script>

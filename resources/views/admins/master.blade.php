@@ -126,6 +126,10 @@
                         <a href="{{route('admins.boxs')}}"><i class="fa fa-box"></i> <span
                                 class="nav-label">Boxes</span> </a>
                     </li>
+                    <li class="@yield('news_letters')"> 
+                        <a href="{{route('admins.news_letters')}}"><i class="fa fa-box"></i> <span
+                                class="nav-label">News Letters</span> </a>
+                    </li>
                     <li class="@yield('brand')"> 
                         <a href="{{route('admins.brand')}}"><i class="fa fa-box"></i> <span
                                 class="nav-label">Brands</span> </a>
@@ -642,6 +646,7 @@
             $('.dataTables-example').DataTable({
                 pageLength: 25,
                 responsive: true,
+                aaSorting: [],
                 dom: '<"html5buttons"B>lTfgitp',
                 buttons: [
                     { extend: 'copy'},

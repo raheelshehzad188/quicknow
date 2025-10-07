@@ -70,7 +70,9 @@ use App\Models\Admins\Product;
                    @endif
                     <td>{{$product->amount}}</td>
                  
-                    <td><a href="{{route('admins.edit_order',['id'=>$product->id])}}" class="btn btn-primary btn-sm " ><i class="fa fa-edit"></i></a>
+                    <td>
+                        <a href="<?php echo url('admin/order-detail/'.$product->id);?>" target="_blank" class="btn btn-info
+                        btn-block">View More</a>
                     <a data-href="{{route('admins.order_delete',['id'=>$product->id])}}" class="btn btn-danger btn-sm delete_record" href="javascript:void(0)"><i class="fa fa-times"></i></a>
                     </td>
                     

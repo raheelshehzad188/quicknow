@@ -38,6 +38,24 @@
                                 </div>
                             </div>
                         </div>
+                        <div class="row">
+                            <div class="col-sm-12">
+                                <div class="form-group"><label class="col-sm-12 control-label"> Heading:</label>
+                                    <div class="col-sm-12">
+                                        <input class="form-control" name="heading" id="heading" value="    <?php echo isset($edit->heading) ? htmlspecialchars($edit->heading) : null; ?>"/>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-sm-12">
+                                <div class="form-group"><label class="col-sm-12 control-label"> Button Link:</label>
+                                    <div class="col-sm-12">
+                                        <input class="form-control" name="button" id="button" value="    <?php echo isset($edit->button) ? $edit->button : null; ?>"/>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                         @if(isset($edit->id))
                         <input type="hidden" name="hidden_id" value="{{$edit->id}}">
                         @endif

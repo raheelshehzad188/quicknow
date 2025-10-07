@@ -48,6 +48,11 @@
                             <input type="text"  class="form-control" required value="<?php echo isset($edit->txt) ? htmlspecialchars($edit->txt) : null; ?>" name="txt" >
                         </div>
                         
+                        <div class="form-group" style="display: flex;flex-direction: column;">
+                            <label>Button Heading:</label>
+                            <input type="text"  class="form-control" required value="<?php echo isset($edit->heading) ? htmlspecialchars($edit->heading) : null; ?>" name="heading" >
+                        </div>
+                        
                       @error('name')
                       <span class="help-block m-b-none text-danger">{{$message}}</span>
                       @enderror

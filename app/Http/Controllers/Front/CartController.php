@@ -28,10 +28,23 @@ class CartController extends Controller
         }
     }
 
-    public function remove(Request $request)
+    public function remove($id)
     {
-        Cart::remove($request->id);
-        return Api::setResponse('cart', Session::get('cart'));
+            $cart = Session::get('cart', []);
+            foreach($cart['items'] as $k=> $v)
+            {
+                if($v['id'] == $id)
+                {
+                    unset($cart['items'][$k]);
+                }
+            }
+        Session::put('cart', $cart);
+
+    return redirect('/checkout')->with([
+                'msg'=>'Cart item removed successfully',
+                'msg_type'=>'success',
+            ]);
+
     }
 
     public function increment(Request $request)

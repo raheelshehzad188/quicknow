@@ -29,34 +29,45 @@ $perctg = ($tot_price / $saling_price) * 100;
 $final_percntage = ceil($perctg);
 
     
-?>
-<div class="product-item">
-                            <div class="product-image">
-                                <a href="{{url('/')}}/product/{{$v->slug}}">
-                                    <img src="{{env('APP_URL').$v->image_one}}" alt="Product Image">
-                                </a>
-                            </div>
-                            <div class="product-content">
-                                <div class="title"><a href="{{url('/')}}/product/{{$v->slug}}">{{$v->product_name}}</a></div>
-                                <div class="ratting">
-                                    <?php
-                            for($i= 1; $i<=5;$i++)
-                            {
-                                if($i <= $rate)
-                                {
-                                ?>
-                            <i class="fa fa-star"></i>
-                            <?php
-                                }
-                                else
-                                {
-                                 ?>
-                            <i class="fa fa-star-o"></i>
-                            <?php   
-                                }
-                            }
-                            ?>
-                                </div>
-                                <div class="price">{{$v->discount_price}} <span>{{$v->selling_price}}</span></div>
-                            </div>
-                        </div>
+?><div class="col-lg-3 col-md-4 col-sm-6 col-6 pb-1">
+    <div class="product-item bg-light mb-4" style="border: 1px solid #ebebeb;">
+        <a class="h6 text-decoration-none text-truncate" href="{{url('/')}}/{{$v->slug}}">
+            @if($final_percntage)
+            <div class="product-img position-relative overflow-hidden">
+                <img class="img-fluid w-100 lazy" data-src="{{env('APP_URL')}}{{$v->image_one}}" width="270"  height="217" alt="">
+                @if($v->status == 1)
+                <span class="discout_price">-{{ $final_percntage }}%</span>
+                @else
+                <span class="discout_price">Out of stock</span>
+                @endif
+            </div>
+            @endif
+        </a>
+        <div class="text-center py-4">
+            <a>{{$v->product_name}}</a>
+            <div class="d-flex align-items-center justify-content-center mt-2">
+                <h5>Rs{{$v->discount_price}}</h5><h6 class="text-muted ml-2"><del>Rs {{$v->selling_price}}</del></h6>
+            </div>
+            <div class="d-flex align-items-center justify-content-center mb-1">
+                <?php
+                for($i= 1; $i<=5;$i++)
+                {
+                    if($i <= $rate)
+                    {
+                    ?>
+                <small class="fa fa-star text-primary mr-1"></small>
+                <?php
+                    }
+                    else
+                    {
+                     ?>
+                <small class="far fa-star text-primary mr-1"></small>
+                <?php   
+                    }
+                }
+                ?>
+                <small>(<?= $count ?>)</small>
+            </div>
+        </div>
+    </div>
+</div>

@@ -41,15 +41,15 @@ class AdminController extends Controller
 {
     public function __construct()
     {
-        session_start();
-
+        // Laravel handles sessions automatically
+        // session_start(); // Remove this line as Laravel manages sessions
     }
 
     public function adminloginpage()
     {
-        if(isset($_SESSION['admin']))
+        if(Session::has('admin'))
         {
-        $this->dashboard();
+            return redirect('admin/dashboard');
         }
         return view('admins.login');
     }
@@ -58,30 +58,20 @@ class AdminController extends Controller
     {   
         $user = Admin::where(['email'=>$req->email])->first();
         
-        $data = Admin::all();
         if ($user) {
-            Session::flush();
-            
-
             if (Hash::check($req->password, $user->password)) {
-                
-                // $req->session()->flash('invalid','Success');
-                Session::put('admin',$user);
-                $_SESSION['admin'] = $user;
+                // Store admin data in Laravel session
+                Session::put('admin', $user);
+                $req->session()->put('admin', $user);
                 return redirect('admin/dashboard');
-
-            }else{
-
-                // return "password not matched";
+            } else {
                 $req->session()->flash('invalid','Enter Your Correct Password');
-                return view('admins.login');
+                return redirect()->back();
             }
-
-        }else{
+        } else {
             $req->session()->flash('invalid','Invalid Email & Password');
-            return view('admins.login');
+            return redirect()->back();
         }
-
     }
     
     function admin(){
@@ -115,8 +105,17 @@ class AdminController extends Controller
 
     function logout(Request $req)
     {
-        session_destroy();
-        return redirect('admin/login'); 
+        // Clear Laravel session
+        Session::flush();
+        $req->session()->flush();
+        $req->session()->invalidate();
+        $req->session()->regenerateToken();
+
+        return redirect('admin/login');
+    }
+    function login()
+    {
+        return view('admin/login'); 
     }
 
     public function dashboard(){
@@ -125,8 +124,8 @@ class AdminController extends Controller
         $products=Product::all();
         $rating=Rating::all();
         $urreviews = $r = DB::table('rating')->where('is_read',0)->get();
-        $corders = Order::where('dstatus',2)->get();
-        $unrorders = Order::where('is_read',0)->get();
+        $corders = Order::where('status',3)->get();
+        $unrorders = Order::where('status',0)->get();
         return view('admins.dashboard',compact('categories','products','rating','corders','unrorders','urreviews'));
     }
     
@@ -150,6 +149,7 @@ class AdminController extends Controller
                 $category=Box::find($request->hidden_id);
                 $category->icon=$request->icon;
                 $category->txt=$request->txt;
+                $category->heading=$request->heading;
                 
                 $category->updated_at=Date('Y-m-d h:i:s');
                 $category->save();
@@ -161,6 +161,7 @@ class AdminController extends Controller
                 $category->created_at=Date('Y-m-d h:i:s');
                 $category->icon=$request->icon;
                 $category->txt=$request->txt;
+                $category->heading=$request->heading;
                 $category->updated_at=Date('Y-m-d h:i:s');
                 $category->save();
                 
@@ -201,6 +202,15 @@ class AdminController extends Controller
                 $category->name=$request->name;
                 $category->status=$request->status;
                 $category->slug= strtolower(trim(preg_replace('/[^A-Za-z0-9-]+/', '-', $request->name)));
+                 $category->title=$request->title;
+                $category->description=$request->description;
+                 $tags = preg_replace('/\s+/', '-', $request->tags);
+               
+                $category->keywords=$tags;
+                $category->s_keywords=$request->s_keywords;
+                 $category->s_schema=$request->s_schema;
+               
+                
                 /*if(isset($request->image_one)){
                     $imageone = $request->image_one;
                     $pimage_name = time().$imageone->getClientOriginalName();
@@ -219,6 +229,14 @@ class AdminController extends Controller
                 $category->created_at=Date('Y-m-d h:i:s');
                 $category->name=$request->name;
                 $category->status=$request->status;
+                $category->title=$request->title;
+                $category->description=$request->description;
+                $tags = preg_replace('/\s+/', '-', $request->tags);
+               
+                $category->keywords=$tags;
+                $category->s_keywords=$request->s_keywords;
+                $category->s_schema=$request->s_schema;
+               
                 // if(isset($request->image_one)){
                 //     $imageone = $request->image_one;
                 //     $pimage_name = time().$imageone->getClientOriginalName();
@@ -241,7 +259,7 @@ class AdminController extends Controller
                 'msg_type'=>'success',
             ]);
         }
-        $categories=Brand::all();
+        $categories = Brand::orderBy('id', 'desc')->get();
         return view('admins.brand',compact('categories','edit','seo'));
     }
     public function category(Request $request,$id=0,$delete=null){
@@ -268,7 +286,7 @@ class AdminController extends Controller
                 $category=Category::find($request->hidden_id);
                 $category->name=$request->name;
                 $category->status=$request->status;
-                $category->short_description=$request->short_discriiption;
+                $category->short_description=$request->short_description;
                 $category->slug= strtolower(trim(preg_replace('/[^A-Za-z0-9-]+/', '-', $request->name)));
                 /*if(isset($request->image_one)){
                     $imageone = $request->image_one;
@@ -317,6 +335,7 @@ class AdminController extends Controller
                 $category->created_at=Date('Y-m-d h:i:s');
                 $category->name=$request->name;
                 $category->status=$request->status;
+                 $category->short_description=$request->short_description;
                 // if(isset($request->image_one)){
                 //     $imageone = $request->image_one;
                 //     $pimage_name = time().$imageone->getClientOriginalName();
@@ -593,6 +612,7 @@ class AdminController extends Controller
     public function subcategory(Request $request,$id=0,$delete=null)
     {
         $edit=null;
+        $seo = null;
         if(isset($delete) && $id>0){
             SubCategory::find($id)->delete();
             return redirect(route('admins.subcategory'))->with([
@@ -601,6 +621,7 @@ class AdminController extends Controller
             ]);
         }
         if($id>0 && !isset($delete)){
+             $seo = CategoriesToMeta::where('scid', '=',  $id)->first();
             $edit=SubCategory::find($id);
         }
         if ($request->isMethod('post')) {
@@ -616,16 +637,47 @@ class AdminController extends Controller
             ]);
 
             if($request->has('hidden_id')){
+              
                 $category=SubCategory::find($request->hidden_id);
+                $seo = CategoriesToMeta::where('scid', '=',  $request->hidden_id)->first(); 
+                
+                 
             }else{
                 $category=new SubCategory();
                 $category->created_at=Date('Y-m-d h:i:s');
             }
+            
+            
+           
             $category->name=$request->name;
             $category->slug=strtolower(trim(preg_replace('/[^A-Za-z0-9-]+/', '-', $request->name)));
             $category->category_id=$request->category_id;
+            $category->keywords=$request->keywords;
+            $category->description=$request->description;
+            $category->title=$request->title;
+            $category->short_description=$request->short_description;
             $category->updated_at=Date('Y-m-d h:i:s');
             $category->save();
+            
+          
+             
+            
+                if($seo){
+                    
+                    $seo->title = $request->title;
+                    $seo->description = $request->description;
+                    $seo->keywords = $request->keywords;
+                    $seo->save();
+                }else{
+                 
+                  
+                    $categoriesmeta = new CategoriesToMeta();
+                    $categoriesmeta->scid = $category->id;
+                    $categoriesmeta->title = $request->title;
+                    $categoriesmeta->description = $request->description;
+                    $categoriesmeta->keywords = $request->keywords;
+                    $categoriesmeta->save();
+                }
             return redirect(route('admins.subcategory'))->with([
                 'msg'=>'SubCategory Saved Successfully',
                 'msg_type'=>'success',
@@ -635,7 +687,7 @@ class AdminController extends Controller
         $sub_categories=$users = SubCategory::leftJoin('categories', 'categories.id', '=', 'sub_categories.category_id')
         ->select('sub_categories.*', 'categories.name AS parent_category')
         ->get();
-        return view('admins.subcategory',compact('categories','sub_categories','edit'));
+        return view('admins.subcategory',compact('categories','sub_categories','edit' , 'seo'));
     }
     
     public function news_letters(Request $request,$id=0,$delete=null)
@@ -695,10 +747,68 @@ class AdminController extends Controller
         return view('admins.products',compact('products'));
     }
     
+    
+    
+     public function products_api()
+{
+    
+    $start = $_GET['start'];
+    $length = $_GET['length'];
+    $srch = $_GET['search']['value'];
+
+$query = Product::select('products.*')->orderBy('products.id','DESC');
+
+if (!empty($srch)) {
+    $query->where(function($q) use ($srch) {
+        $q->where('product_name', 'like', '%' . $srch . '%')
+          ->orWhere('product_code', 'like', '%' . $srch . '%')
+          ->orWhere('product_quantity', 'like', '%' . $srch . '%');
+          
+    });
+}
+
+
+$tot = $query->get();
+
+$ret = $query->offset($start)->limit($length)->get();
+
+    $data = array();
+    $i = 0;
+    foreach($ret as $k => $v)
+    {
+        $i++;
+        $st = '<div class="switch">
+        <div class="onoffswitch">
+            <input type="checkbox" name="product_status" data-id="' . $v->id . '" ' . ($v->status == 1 ? 'checked' : '') . ' class="onoffswitch-checkbox" id="example-' . $v->id . '">
+            <label class="onoffswitch-label" for="example-' . $v->id . '">
+                <span class="onoffswitch-inner"></span>
+                <span class="onoffswitch-switch"></span>
+            </label>
+        </div>
+    </div>';
+      $action = '<a href="' . route('admins.product_form', $v->id) . '" class="btn btn-success btn-sm"><i class="fa fa-edit"></i>&nbsp;Edit</a>' .
+          '<a  class="btn btn-danger btn-sm"  onclick="deleteProduct(' . $v->id . ', \'' . route('admins.product_delete', ['id' => $v->id]) . '\')"><i class="fa fa-times"></i>&nbsp;Delete</a>';
+
+
+          $category_id = Category::where(['id'=>$v->category_id])->get();   
+        $category_name = (isset($category_id[0]->name)?$category_id[0]->name:'');
+        $image = '<img src="' . asset($v->image_one) . '" alt="">';
+
+         
+
+        $data[] = array($start + $i, $image, $v->product_code, $v->product_name, $category_name,$v->product_quantity, $st,$action);
+    }
+    
+    $r = array('draw' => $_GET['draw'], 'recordsTotal' => count($tot), 'recordsFiltered' => count($tot), 'data' => $data);
+    echo json_encode($r);
+    exit();
+}
+    
     public function review(Request $request,$id=0,$delete=null){
-        $reviews=Rating::all();
+        $reviews = DB::table('rating')->orderBy('id','DESC')->get();
+        $pendingreviews = Rating::where('status', 0)->get();
         $r = DB::table('rating')->update(array('is_read'=>1));
-        return view('admins.review',compact('reviews'));
+        return view('admins.review',compact('reviews' , 'pendingreviews'));
     }
     
     public function pages(Request $request,$id=0,$delete=null){
@@ -902,6 +1012,11 @@ class AdminController extends Controller
                
                 $setting->phonetwo=$request->phonetwo;
                 $setting->instagram=$request->instagram;
+                $setting->dir_link=$request->dir_link;
+                $setting->facebook=$request->facebook;
+                $setting->twitter=$request->twitter;
+                $setting->tiktok=$request->tiktok;
+                $setting->pinterest=$request->pinterest;
                 
                 $setting->homepage_footer=$request->homepage_footer;
                 $setting->homepage_img1d=$request->homepage_img1d;
@@ -970,11 +1085,14 @@ class AdminController extends Controller
     
     public function orders(Request $request){
         
-        $orders=Order::where('status','1')->orderBy('id','DESC')->get();
+        $orders=DB::table('orders')->where('status',1)->orderBy('id','DESC')->get();
         $r = DB::table('orders')->update(array('is_read'=>1));
         return view('admins.orders',compact('orders'));
         
     }
+    
+    
+    
     public function delete_order(Request $request){
         $ids = $request->input('id', []);
 
@@ -1061,12 +1179,11 @@ class AdminController extends Controller
                 $product->category_id=$cats;
                 $product->product_name=$request->product_name;
                 $product->product_details=$request->product_details;
+                $product->add_info=$request->add_info;
                 
                 $product->short_discriiption=$request->short_discriiption;
                 $tags = preg_replace('/\s+/', '-', $request->tags);
                 $product->tags=$tags;
-                
-                $product->specification=$request->specification;
                 $product->shipping_price=$request->shipping_price;
                 $product->slug=$request->slug;
                 $product->brand=$request->brand;
@@ -1170,9 +1287,9 @@ class AdminController extends Controller
                 $product->product_name=$request->product_name;
                 $product->product_details=$request->product_details;
                 $product->short_discriiption=$request->short_discriiption;
+                $product->add_info=$request->add_info;
                 $tags = preg_replace('/\s+/', '-', $request->tags);
                 $product->tags=$tags;
-                $product->specification=$request->specification;
                 $product->shipping_price=$request->shipping_price;
                 $product->slug=$request->slug;
                 $product->brand=$request->brand;
@@ -1327,6 +1444,10 @@ class AdminController extends Controller
                     $page->content=utf8_encode($request->content);
                     $page->status=$request->status;
                     $page->position=$request->position;
+                    $page->seo_title=$request->seo_title;
+                    $page->seo_description=$request->seo_description;
+                    // $page->seo_meta=$request->seo_meta;
+                    $page->seo_keywords=$request->seo_keywords;
                     $page->section=$request->sections;
                     $page->page_image_status=$request->image_status;
                     if($request->page_image_one)
@@ -1378,6 +1499,10 @@ class AdminController extends Controller
                 $page->slug=$request->slug;
                 $page->content=$request->content;
                 $page->position=$request->position;
+                $page->seo_title=$request->seo_title;
+                $page->seo_description=$request->seo_description;
+                // $page->seo_meta=$request->seo_meta;
+                $page->seo_keywords=$request->seo_keywords;
                 $page->status=$request->status;
                 $page->parent=$request->parent;
                 $page->section=$request->sections;
@@ -1485,12 +1610,22 @@ class AdminController extends Controller
     }
     public function order_delete($id)
     {
-        $product=Order::find($id);
-        $product->delete();
+        $deleted = DB::table('orders')->where('id', $id)->delete();
+
+        if($deleted)
+        {
         return redirect(route('admins.orders'))->with([
             'msg'=>'Order Deleted Successfully',
             'msg_type'=>'success',
         ]);
+        }
+        else
+        {
+            return redirect(route('admins.orders'))->with([
+            'msg'=>'Order not found',
+            'msg_type'=>'error',
+        ]);
+        }
     }
     public function meg_delete($id)
     {
@@ -1665,17 +1800,6 @@ Mail::send('emails.normal',
             'msg_type'=>'success',
         ]);
     }
-    
-    public function show_on_home(Request $request)
-    {
-        $product=Category::find($request->product_id);
-        $product->show_on_home=$request->Status;
-        $product->save();
-        return response()->json([
-            'msg'=>'Category updated successfully',
-            'msg_type'=>'success',
-        ]);
-    }
     public function update_review_status(Request $request)
     {
         $product=Rating::find($request->review_id);
@@ -1807,6 +1931,7 @@ Mail::send('emails.normal',
                  $category->title=$request->title;
                  $category->description=$request->seo_des;
                  $category->keywords=$request->seo_key;
+                //  $category->seo_meta=$request->seo_meta;
                 $category->category_id=$request->category;
                 // if(isset($request->image)){
                 //     $imageone = $request->image;
@@ -1841,6 +1966,7 @@ Mail::send('emails.normal',
                 $category->title=$request->title;
                  $category->description=$request->seo_des;
                  $category->keywords=$request->seo_key;
+                //  $category->seo_meta=$request->seo_meta;
                 // if(isset($request->image)){
                 //     $imageone = $request->image;
                 //     $pimage_name = time().$imageone->getClientOriginalName();
@@ -1872,6 +1998,146 @@ Mail::send('emails.normal',
         $categories=Blog_Post::all();
         return view('admins.blog_posts',compact('categories','edit'));
     }
+    
+    
+    
+       public function orders_all(Request $request,$id=0,$delete=null){
+           
+          
+        
+       if(isset($delete) && $id > 0){
+    DB::table('orders')->where('id', $id)->delete();
+    return redirect(route('admins.all-orders'))->with([
+        'msg' => 'Order Deleted Successfully',
+        'msg_type' => 'success',
+    ]);
+}
+
+       
+       
+       $orders = DB::table('orders')->get();
+        return view('admins.all-orders', ['orders' => $orders]);
+         
+       
+    }
+    
+    
+    
+     public function orders_all_api()
+{
+    $status = $_GET['status'];
+    $start = $_GET['start'];
+    $length = $_GET['length'];
+    $srch = $_GET['search']['value'];
+
+$query = DB::table('orders')->orderBy('id', 'asc');
+
+
+
+if (!empty($srch)) {
+    $query->where(function($q) use ($srch) {
+        $q->where('city', 'like', '%' . $srch . '%')
+          ->orWhere('customer_name', 'like', '%' . $srch . '%')
+          ->orWhere('phone', 'like', '%' . $srch . '%')
+          ->orWhere('address', 'like', '%' . $srch . '%')
+          ->orWhere('email', 'like', '%' . $srch . '%');
+    });
+}
+
+
+$tot = $query->get();
+
+$ret = $query->offset($start)->limit($length)->get();
+
+    $data = array();
+    $i = 0;
+    foreach($ret as $k => $v)
+    {
+        $i++;
+        
+        if($v->status == 1){
+           $st = '<a class="btn btn-success btn-block">Not Delivered</a>
+               <a href="' . url('admin/mark-as-delivered/' . $v->id) . '" class="btn btn-info  btn-block">Mark as Delivered</a>
+        ';  
+        }else if($v->status == 2){
+              $st = '<a  class="btn btn-success btn-block">Delivered</a> ';
+        }
+        
+       
+         $actions = '<a href="' . url('admin/detail/' . $v->id) . '" target="_blank" class="btn btn-info btn-block">View More</a>
+                            <a href="' . url('admin/delete-orders/' . $v->id) . '" class="btn btn-danger btn-block">Delete</a>';
+
+         
+
+        $data[] = array($start + $i, $v->customer_name, $v->phone, $v->email, $v->city, $v->address, $st,$actions);
+    }
+    
+    $r = array('draw' => $_GET['draw'], 'recordsTotal' => count($tot), 'recordsFiltered' => count($tot), 'data' => $data);
+    echo json_encode($r);
+    exit();
+}
+    
+    
+    
+    public function new_orders_delete($id)
+    {
+        $del = DB::table('orders')->delete($id);
+        if($del){
+           return redirect(route('admins.all-orders'))->with([
+                'msg'=>'Order Deleted Successfully',
+                'msg_type'=>'success',
+            ]);
+        }else{
+            return back()->with('message', "something went wrong");
+        }
+    }
+    
+    public function status_deliverd($id)
+{
+    
+    $updated = DB::table('orders')
+                 ->where('id', $id)
+                 ->update(['status' => 2]);
+
+    if($updated){
+        return redirect(route('admins.all-orders'))->with([
+            'msg' => 'Order status updated to delivered successfully',
+            'msg_type' => 'success',
+        ]);
+    } else {
+        return back()->with('message', "Something went wrong");
+    }
+}
+
+
+public function detail($id)
+{
+    // Fetch the order from the database
+    $order = DB::table('orders')->where('id', $id)->first();
+    
+    // Decode the product_detail column
+    $productDetails = json_decode($order->product_detail, true);
+    
+    $products = [];
+    foreach ($productDetails as $detail) {
+        // Fetch product details from the products table
+        $product = DB::table('products')->where('id', $detail['id'])->first();
+        if ($product) {
+            $products[] = [
+                'name' => $product->product_name,
+                'quantity' => $detail['qty']
+            ];
+        }
+    }
+
+    return view('admins.all-orders', ['Detail' => $order, 'products' => $products]);
+}
+
+    
+    
+    
+    
+    
     public function post_form(Request $request,$id=0)
     {
 
@@ -1902,10 +2168,14 @@ Mail::send('emails.normal',
             if($request->has('hidden_id')){
                 $slider=Slider::find($request->hidden_id);
                 $slider->p = $request->p;
+                $slider->button = $request->button;
+                $slider->heading = $request->heading;
             }else{
                 $slider=new Slider();
                 $slider->created_at=Date('Y-m-d h:i:s');
                 $slider->p = $request->p;
+                $slider->button = $request->button;
+                $slider->heading = $request->heading;
             }
             $slider->updated_at=Date('Y-m-d h:i:s');
             
@@ -1958,31 +2228,36 @@ Mail::send('emails.normal',
     }
     public function faq(Request $request,$id=0,$delete=null)
     {
+        
+        
         $edit=null;
         if(isset($delete) && $id>0){
-            $slider=Faq::find($id);
+            // $slider=Faq::find($id);
            
-            $slider->delete(); 
+            // $slider->delete(); 
+            DB::table('pfaqs')->where('id', $id)->delete();
             return redirect(route('admins.faq'))->with([
                 'msg'=>'Faq Deleted Successfully',
                 'msg_type'=>'success',
             ]);
         }
         if($id>0 && !isset($delete)){
-            $edit=DB::table('faqs')->where('id',$id)->first();
+            $edit=DB::table('pfaqs')->where('id',$id)->first();
             return view('admins.faq',compact('edit'));
         }
         if ($request->isMethod('post')) {
             
             
             if($request->has('hidden_id')){
-                DB::table('faqs')->where('id',$request->hidden_id)->update([
-            'answer' =>  $request->answer,
-            'question' =>  $request->question,
-        ]);
+                DB::table('pfaqs')->where('id',$request->hidden_id)->update([
+                       'product_id' =>  $request->product_id,         
+                      'ans' =>  $request->answer,
+                      'question' =>  $request->question,
+                  ]);
             }else{
-                $in = DB::table('faqs')->insert([
-            'answer' =>  $request->answer,
+                $in = DB::table('pfaqs')->insert([
+            'product_id' =>  $request->product_id,        
+            'ans' =>  $request->answer,
             'question' =>  $request->question,
         ]);
             }
@@ -1992,7 +2267,11 @@ Mail::send('emails.normal',
                 'msg_type'=>'success',
             ]);
         }
-        $sliders=DB::table('faqs')->get();
+        // $sliders=DB::table('pfaqs')->get();
+        $sliders = DB::table('pfaqs')
+    ->join('products', 'pfaqs.product_id', '=', 'products.id')
+    ->select('pfaqs.*', 'products.product_name')
+    ->get();
         return view('admins.faq',compact('sliders','edit'));
     }
 }

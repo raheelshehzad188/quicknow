@@ -7,8 +7,11 @@ $Site= Setting::where(['id'=>'1'])->first();
 <html lang="en">
 <head>
     <link rel="shortcut icon" type="image/x-icon" href="favicon.ico">
+    come here
     @if(isset($meta_file) && $meta_file)
     @include($meta_file) 
+    @else
+    @include('meta.default')
 
     @endif
 <!-- Basic page needs -->

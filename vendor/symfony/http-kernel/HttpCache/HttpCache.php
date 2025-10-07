@@ -29,8 +29,6 @@ use Symfony\Component\HttpKernel\TerminableInterface;
  */
 class HttpCache implements HttpKernelInterface, TerminableInterface
 {
-    public const BODY_EVAL_BOUNDARY_LENGTH = 24;
-
     private $kernel;
     private $store;
     private $request;
@@ -81,7 +79,7 @@ class HttpCache implements HttpKernelInterface, TerminableInterface
      *                            This setting is overridden by the stale-if-error HTTP Cache-Control extension
      *                            (see RFC 5861).
      */
-    public function __construct(HttpKernelInterface $kernel, StoreInterface $store, ?SurrogateInterface $surrogate = null, array $options = [])
+    public function __construct(HttpKernelInterface $kernel, StoreInterface $store, SurrogateInterface $surrogate = null, array $options = [])
     {
         $this->store = $store;
         $this->kernel = $kernel;
@@ -471,7 +469,7 @@ class HttpCache implements HttpKernelInterface, TerminableInterface
      *
      * @return Response
      */
-    protected function forward(Request $request, bool $catch = false, ?Response $entry = null)
+    protected function forward(Request $request, bool $catch = false, Response $entry = null)
     {
         if ($this->surrogate) {
             $this->surrogate->addSurrogateCapability($request);
@@ -633,22 +631,12 @@ class HttpCache implements HttpKernelInterface, TerminableInterface
     private function restoreResponseBody(Request $request, Response $response)
     {
         if ($response->headers->has('X-Body-Eval')) {
-            \assert(self::BODY_EVAL_BOUNDARY_LENGTH === 24);
-
             ob_start();
 
-            $content = $response->getContent();
-            $boundary = substr($content, 0, 24);
-            $j = strpos($content, $boundary, 24);
-            echo substr($content, 24, $j - 24);
-            $i = $j + 24;
-
-            while (false !== $j = strpos($content, $boundary, $i)) {
-                [$uri, $alt, $ignoreErrors, $part] = explode("\n", substr($content, $i, $j - $i), 4);
-                $i = $j + 24;
-
-                echo $this->surrogate->handle($this, $uri, $alt, $ignoreErrors);
-                echo $part;
+            if ($response->headers->has('X-Body-File')) {
+                include $response->headers->get('X-Body-File');
+            } else {
+                eval('; ?>'.$response->getContent().'<?php ;');
             }
 
             $response->setContent(ob_get_clean());
@@ -730,11 +718,7 @@ class HttpCache implements HttpKernelInterface, TerminableInterface
             $timeout = $this->options['stale_while_revalidate'];
         }
 
-        $age = $entry->getAge();
-        $maxAge = $entry->getMaxAge() ?? 0;
-        $ttl = $maxAge - $age;
-
-        return abs($ttl) < $timeout;
+        return abs($entry->getTtl() ?? 0) < $timeout;
     }
 
     /**

@@ -1,46 +1,24 @@
-<!-- Category Start-->
-        <div class="category">
-            <div class="container-fluid">
-                <div class="row">
-                    @if(isset($categories[0]))
-                    <div class="col-md-4">
-                        <div class="category-img">
-                            <img src="{{env('APP_URL').$categories[0]->image}}" />
-                            <a class="category-name" href="{{ url('/category') }}/{{$categories[0]->slug}}">
-                                <h2>{{$categories[0]->name}}</h2>
-                            </a>
-                        </div>
-                    </div>
-                    @endif
-                    <div class="col-md-4">
-                        @if(isset($categories[1]))
-                        <div class="category-img">
-                            <img src="{{env('APP_URL').$categories[1]->image}}" />
-                            <a class="category-name" href="{{ url('/category') }}/{{$categories[1]->slug}}">
-                                <h2>{{$categories[1]->name}}</h2>
-                            </a>
-                        </div>
-                        @endif
-                        @if(isset($categories[2]))
-                        <div class="category-img">
-                            <img src="{{env('APP_URL').$categories[2]->image}}" />
-                            <a class="category-name" href="{{ url('/category') }}/{{$categories[2]->slug}}">
-                                <h2>{{$categories[2]->name}}</h2>
-                            </a>
-                        </div>
-                        @endif
-                    </div>
-                    <div class="col-md-4">
-                        @if(isset($categories[3]))
-                        <div class="category-img">
-                            <img src="{{env('APP_URL').$categories[3]->image}}" />
-                            <a class="category-name" href="{{ url('/category') }}/{{$categories[3]->slug}}">
-                                <h2>{{$categories[3]->name}}</h2>
-                            </a>
-                        </div>
-                        @endif
-                    </div>
-                </div>
-            </div>
-        </div>
-        <!-- Category End-->
+<!-- Categories Start -->
+<!--<div class="container-fluid pt-5">-->
+<!--    <h2 class="section-title position-relative text-uppercase mx-xl-5 mb-4"><span class="bg-secondary pr-3">Categories</span></h2>-->
+<!--    <div class="row px-xl-5 pb-3">-->
+<!--        @foreach($categories as $k=> $v)-->
+<!--        <div class="col-lg-3 col-md-4 col-sm-6 pb-1">-->
+<!--            <a class="text-decoration-none" href="{{ url('') }}/{{$v->slug}}">-->
+<!--                <div class="cat-item d-flex align-items-center mb-4">-->
+<!--                    <div class="overflow-hidden" style="width: 100px; height: 100px;">-->
+<!--                        @if($v->image)-->
+<!--                        <img style="height: 100%;object-fit: cover;" class="img-fluid" src="{{ $v->image}}" alt="">-->
+<!--                        @endif-->
+<!--                    </div>-->
+<!--                    <div class="flex-fill pl-3">-->
+<!--                        <h6>{{$v->name}}</h6>-->
+<!--                        <small class="text-body">{{$v->prod}} Products</small>-->
+<!--                    </div>-->
+<!--                </div>-->
+<!--            </a>-->
+<!--        </div>-->
+<!--        @endforeach-->
+<!--    </div>-->
+<!--</div>-->
+<!-- Categories End -->

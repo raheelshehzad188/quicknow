@@ -31,7 +31,7 @@
               <div class="navbar-header float-none-sm">
                 <button data-target=".navbar-collapse" data-toggle="collapse" class="navbar-toggle" type="button"><i class="fa fa-bars"></i></button>
                 <a class="navbar-brand page-scroll" href="/">
-                  <img alt="DealShop" src="{{asset('')}}{{$setting->logo}}" width="150px" height="80px">
+                  <img alt="DealShop" src="{{env('APP_URL')}}{{$setting->logo}}" width="150px" height="80px">
                 </a> 
               </div>
             </div>

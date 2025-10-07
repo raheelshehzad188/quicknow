@@ -63,8 +63,26 @@
                             <div class="col-sm-12"><input type="text" value="<?php echo isset($edit->phone) ? htmlspecialchars($edit->phone) : null; ?>" required class="form-control" name="phone"></div>
                         </div>
                         
+                        
+                        
                         <div class="form-group"><label class="col-sm-12 control-label">Instagram Link:</label>
                             <div class="col-sm-12"><input type="text" value="<?php echo isset($edit->instagram) ? htmlspecialchars($edit->instagram) : null; ?>" required class="form-control" name="instagram"></div>
+                        </div>
+                        
+                        <div class="form-group"><label class="col-sm-12 control-label">Facebook Link:</label>
+                            <div class="col-sm-12"><input type="text" value="<?php echo isset($edit->facebook) ? htmlspecialchars($edit->facebook) : null; ?>" required class="form-control" name="facebook"></div>
+                        </div>
+                        
+                        <div class="form-group"><label class="col-sm-12 control-label">Twitter Link:</label>
+                            <div class="col-sm-12"><input type="text" value="<?php echo isset($edit->twitter) ? htmlspecialchars($edit->twitter) : null; ?>" required class="form-control" name="twitter"></div>
+                        </div>
+                        
+                        <div class="form-group"><label class="col-sm-12 control-label">Tiktok Link:</label>
+                            <div class="col-sm-12"><input type="text" value="<?php echo isset($edit->tiktok) ? htmlspecialchars($edit->tiktok) : null; ?>" required class="form-control" name="tiktok"></div>
+                        </div>
+                        
+                        <div class="form-group"><label class="col-sm-12 control-label">Pinterest Link:</label>
+                            <div class="col-sm-12"><input type="text" value="<?php echo isset($edit->pinterest) ? htmlspecialchars($edit->pinterest) : null; ?>" required class="form-control" name="pinterest"></div>
                         </div>
                         
                       
@@ -182,6 +200,9 @@
                                     <?php echo isset($edit->news_text) ? htmlspecialchars($edit->news_text) : null; ?>
                                 </textarea>
                             </div>
+                        </div>
+                        <div class="form-group"><label class="col-sm-12 control-label">Direction Link:</label>
+                            <div class="col-sm-12"><input type="text" value="<?php echo isset($edit->dir_link) ? htmlspecialchars($edit->dir_link) : null; ?>" required class="form-control" name="dir_link"></div>
                         </div>
                         
                        

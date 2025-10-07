@@ -119,7 +119,7 @@ use App\Models\Admins\Gallerie;
       $(document).ready(function(){
           let status=0;
           let product_id=0;
-          $('input[name="product_status"]').change(function(){
+              $(document).on('change', 'input[name="product_status"]', function () {
             if($(this).is(':checked')){
                 status=1;
                 product_id=$(this).data('id');

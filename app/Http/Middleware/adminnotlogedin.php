@@ -4,6 +4,7 @@ namespace App\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
+use Session;
 
 class adminnotlogedin
 {
@@ -16,7 +17,7 @@ class adminnotlogedin
      */
     public function handle(Request $request, Closure $next)
     {
-        if (session()->has('admin')) {
+        if (Session::get('admin')) {
             return redirect('admin/dashboard');
         }
         return $next($request);

@@ -1,6 +1,11 @@
 <?php 
 use App\Models\Admins\Product;
 ?>
+<?php $setting = DB::table('setting')
+    ->where('id', '=', '1')
+    ->first();
+$cate = DB::table('categories')->get();
+?>
 <!DOCTYPE html>
 <html>
 <head>
@@ -45,7 +50,6 @@ use App\Models\Admins\Product;
       <th scope="col">#</th>
       <th scope="col">Product Name</th>
       <th scope="col">Qutantity</th>
-      <th scope="col">Shipping</th>
       <th scope="col">Amount</th>
     </tr>
   </thead>
@@ -53,16 +57,17 @@ use App\Models\Admins\Product;
        
       <?php $pro = json_decode($edit->product_detail); 
       $no = 1;
+      $tot = 0;
        foreach($pro as $v){
        
        $product = Product::where(['id'=>$v->id])->first();
+       $tot = $tot + ($v->qty*$product->discount_price);
        
        ?>
     <tr>
       <th scope="row">{{$no++}}</th>
-      <td>{{$product->product_name}}</td>
+      <td>{{$product->product_name}}({{$product->discount_price}})</td>
       <td>{{$v->qty}}</td>
-      <td>{{$product->shipping_price}}</td>
       <td>Rs:{{$v->qty*$product->discount_price}}</td>
     </tr>
     <?php } ?>
@@ -72,9 +77,14 @@ use App\Models\Admins\Product;
         <tr>
             <td></td>
             <td></td>
+            <th scope="row">Shpping charges</th>
+            <td>Rs:{{$setting->shipping_charges}}</td>
+        </tr>
+        <tr>
+            <td></td>
             <td></td>
             <th scope="row">Totals</th>
-            <td>Rs:<?= $edit->amount?></td>
+            <td>Rs:<?= $tot + $setting->shipping_charges ?></td>
         </tr>
     </tfoot>
     <?php }?>

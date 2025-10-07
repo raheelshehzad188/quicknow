@@ -37,6 +37,7 @@ use App\Models\Admins\Brand;
             <table class="table table-striped table-bordered table-hover dataTables-example" >
             <thead>
             <tr>
+                <th>#</th>
                 <th>Product Name</th>
                 <th>Customer Name</th>
                 <th>Review</th>
@@ -54,6 +55,7 @@ use App\Models\Admins\Brand;
                     ?>
                     
                     @foreach($products as $product)
+                    <td>{{$review->id}}</td>
                     <td>{{$product->product_name}}</td>
                     @endforeach
                     

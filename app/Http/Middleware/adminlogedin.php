@@ -4,8 +4,9 @@ namespace App\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Session;
 
-class adminlogedin
+class Adminlogedin
 {
     /**
      * Handle an incoming request.
@@ -16,7 +17,8 @@ class adminlogedin
      */
     public function handle(Request $request, Closure $next)
     {
-        if (!session()->has('admin')) {
+        if(!Session::has('admin'))
+        {
             return redirect('admin/login');
         }
         return $next($request);

@@ -16,38 +16,48 @@ use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\Reference;
 use Symfony\Component\DependencyInjection\ServiceLocator;
-use Symfony\Component\HttpKernel\Controller\ArgumentResolver\TraceableValueResolver;
 
 /**
  * @author Yonel Ceruto <yonelceruto@gmail.com>
  */
 class TranslatorPathsPass extends AbstractRecursivePass
 {
-    protected bool $skipScalars = true;
-
-    private int $level = 0;
+    private $translatorServiceId;
+    private $debugCommandServiceId;
+    private $updateCommandServiceId;
+    private $resolverServiceId;
+    private $level = 0;
 
     /**
      * @var array<string, bool>
      */
-    private array $paths = [];
+    private $paths = [];
 
     /**
      * @var array<int, Definition>
      */
-    private array $definitions = [];
+    private $definitions = [];
 
     /**
      * @var array<string, array<string, bool>>
      */
-    private array $controllers = [];
+    private $controllers = [];
 
-    /**
-     * @return void
-     */
+    public function __construct(string $translatorServiceId = 'translator', string $debugCommandServiceId = 'console.command.translation_debug', string $updateCommandServiceId = 'console.command.translation_extract', string $resolverServiceId = 'argument_resolver.service')
+    {
+        if (0 < \func_num_args()) {
+            trigger_deprecation('symfony/translation', '5.3', 'Configuring "%s" is deprecated.', __CLASS__);
+        }
+
+        $this->translatorServiceId = $translatorServiceId;
+        $this->debugCommandServiceId = $debugCommandServiceId;
+        $this->updateCommandServiceId = $updateCommandServiceId;
+        $this->resolverServiceId = $resolverServiceId;
+    }
+
     public function process(ContainerBuilder $container)
     {
-        if (!$container->hasDefinition('translator')) {
+        if (!$container->hasDefinition($this->translatorServiceId)) {
             return;
         }
 
@@ -72,12 +82,12 @@ class TranslatorPathsPass extends AbstractRecursivePass
                 }
             }
             if ($paths) {
-                if ($container->hasDefinition('console.command.translation_debug')) {
-                    $definition = $container->getDefinition('console.command.translation_debug');
+                if ($container->hasDefinition($this->debugCommandServiceId)) {
+                    $definition = $container->getDefinition($this->debugCommandServiceId);
                     $definition->replaceArgument(6, array_merge($definition->getArgument(6), $paths));
                 }
-                if ($container->hasDefinition('console.command.translation_extract')) {
-                    $definition = $container->getDefinition('console.command.translation_extract');
+                if ($container->hasDefinition($this->updateCommandServiceId)) {
+                    $definition = $container->getDefinition($this->updateCommandServiceId);
                     $definition->replaceArgument(7, array_merge($definition->getArgument(7), $paths));
                 }
             }
@@ -88,10 +98,10 @@ class TranslatorPathsPass extends AbstractRecursivePass
         }
     }
 
-    protected function processValue(mixed $value, bool $isRoot = false): mixed
+    protected function processValue($value, bool $isRoot = false)
     {
         if ($value instanceof Reference) {
-            if ('translator' === (string) $value) {
+            if ((string) $value === $this->translatorServiceId) {
                 for ($i = $this->level - 1; $i >= 0; --$i) {
                     $class = $this->definitions[$i]->getClass();
 
@@ -126,20 +136,28 @@ class TranslatorPathsPass extends AbstractRecursivePass
 
     private function findControllerArguments(ContainerBuilder $container): array
     {
-        if (!$container->has('argument_resolver.service')) {
-            return [];
-        }
-        $resolverDef = $container->findDefinition('argument_resolver.service');
+        if ($container->hasDefinition($this->resolverServiceId)) {
+            $argument = $container->getDefinition($this->resolverServiceId)->getArgument(0);
+            if ($argument instanceof Reference) {
+                $argument = $container->getDefinition($argument);
+            }
 
-        if (TraceableValueResolver::class === $resolverDef->getClass()) {
-            $resolverDef = $container->getDefinition($resolverDef->getArgument(0));
-        }
-
-        $argument = $resolverDef->getArgument(0);
-        if ($argument instanceof Reference) {
-            $argument = $container->getDefinition($argument);
+            return $argument->getArgument(0);
         }
 
-        return $argument->getArgument(0);
+        if ($container->hasDefinition('debug.'.$this->resolverServiceId)) {
+            $argument = $container->getDefinition('debug.'.$this->resolverServiceId)->getArgument(0);
+            if ($argument instanceof Reference) {
+                $argument = $container->getDefinition($argument);
+            }
+            $argument = $argument->getArgument(0);
+            if ($argument instanceof Reference) {
+                $argument = $container->getDefinition($argument);
+            }
+
+            return $argument->getArgument(0);
+        }
+
+        return [];
     }
 }

@@ -1,45 +1,78 @@
 @extends('layout.app2')
 @section('content')
  <!-- Bread Crumb STRAT -->
-  <div class="banner inner-banner1 ">
-    <div class="container">
-      <section class="banner-detail center-xs">
-        <h1 class="banner-title">Blog</h1>
-        <div class="bread-crumb right-side float-none-xs">
-          <ul>
-            <li><a href="/">Home</a>/</li>
-            <li><span>Blog</span></li>
-          </ul>
-        </div>
-      </section>
-    </div>
-  </div>
+  
+<!--<div class="container-fluid">-->
+<!--        <div class="row px-xl-5">-->
+<!--            <div class="col-12">-->
+<!--                <nav class="breadcrumb bg-light mb-30">-->
+<!--                    <a class="breadcrumb-item text-dark" href="/">Home</a>-->
+<!--                    <span class="breadcrumb-item active">Blog</span>-->
+<!--                </nav>-->
+<!--            </div>-->
+<!--        </div>-->
+<!--    </div>-->
   <!-- Bread Crumb END -->
   
   <!-- CONTAIN START -->
+  
+  @foreach($pages as $item)
+<?php
+$img = '';
+if(isset($item->page_image) && $item->page_image && $item->page_image_status == 1)
+{
+$img = url('/').'/public/img/slider/'.$item->page_image;
+}
+?>
+  
+  <div class="container-fluid">
+        <div class="row px-xl-5">
+            <div class="col-12">
+                <nav class="breadcrumb bg-light mb-30">
+                    <a class="breadcrumb-item text-dark" href="/">Home</a>
+                    <span class="breadcrumb-item active"><?php echo $item->name; ?></span>
+                </nav>
+            </div>
+        </div>
+    </div>
+    
+     <!-- CONTAIN START ptb-95-->
   <section class="ptb-95">
     <div class="container">
       <div class="row">
-        <div class="col-lg-10 col-md-8  content-col">
+        <div class="col-md-12 col-sm-12">
+          <div class="row">
+            <div class="col-xs-12">
+             @if($img)
+                <img src="<?= $img; ?>" />
+                @endif
+                <h1 style="margin-bottom: 30px;text-align: center;"><?php echo $item->name; ?></h1>
+               <?php echo $item->content; ?>
+               
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+  
+  <section class="ptb-95 mt-5">
+    <div class="container">
+      <div class="row">
+        <div class="col-lg-12 col-md-12  content-col">
           <div class="blog-listing">
             <div class="row">
+                
                 @foreach($post as $v)
-                    <div class="col-lg-6 col-xs-12">
+                    <div class="col-lg-4 col-xs-12">
                 <div class="blog-item">
                   <div class="blog-media mb-30">
-                    <img src="{{asset($v->image)}}" alt="Electrro">
+                    <img class="blog-item-img" src="{{asset($v->image)}}" alt="Electrro">
                     <a href="/blog/{{$v->slug}}" title="Click For Read More" class="read">&nbsp;</a> 
                   </div>
                   <div class="blog-detail">
-                    <span class="post-date">{{date(" F d Y ",strtotime($v->created_at))}}</span>
                     <h3><a href="/blog/{{$v->slug}}">{{$v->title_english}}</a></h3>
                     <hr>
-                    <div class="post-info">
-                      <ul>
-                        <li><span>By</span><a href="#"> Admin</a></li>
-                        <!--<li><a href="#">(5) comments</a></li>-->
-                      </ul>
-                    </div>
                   </div>
                 </div>
               </div>
@@ -48,45 +81,11 @@
             
           </div>
         </div>
-        <div class="col-lg-2 col-md-4 sidebar-col">
-          <div class="sidebar-block">
-            
-            <div class="sidebar-box listing-box mb-40"> <span class="opener plus"></span>
-              <div class="sidebar-title">
-                <h3>Categories</h3><span></span>
-              </div>
-              <div class="sidebar-contant">
-                <ul>
-                    @foreach($cate as $v)
-                  <li><a href="/blog_category/{{$v->slug}}">{{$v->title_english}}</a></li>
-                  @endforeach
-                </ul>
-              </div>
-            </div>
-            <div class="sidebar-box sidebar-item sidebar-item-wide"> <span class="opener plus"></span>
-              <div class="sidebar-title">
-                <h3>Recent Post</h3><span></span>
-              </div>
-              <div class="sidebar-contant">
-                <ul>
-                    <?php 
-                        $pro = DB::table('posts')->limit('4')->orderBy('id','DESC')->get();
-                    ?>
-                    @foreach($pro as $p)
-                  <li>
-                    <div class="pro-media"> <a href="/blog/{{$p->slug}}"><img alt="T-shirt" src="{{asset($p->image)}}"></a> </div>
-                    <div class="pro-detail-info"> <a href="/blog/{{$p->slug}}">{{$p->title_english}}</a>
-                      <div class="post-info">{{date(" F d Y ",strtotime($p->created_at))}}</div>
-                    </div>
-                  </li>
-                   @endforeach
-                </ul>
-              </div>
-            </div>
-          </div>
-        </div>
+        
       </div>
     </div>
   </section>
+  
+  @endforeach
   <!-- CONTAINER END --> 
   @endsection

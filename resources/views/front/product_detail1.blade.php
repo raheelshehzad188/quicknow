@@ -151,7 +151,7 @@ $setting = DB::table('setting')
                             <div class="d-flex pt-2">
                                   <div class="d-inline-flex">
                                  <a href="#" class="add-to-cart-item1"  id="{{$item->id}}"><button class="btn-cart"><i class="fa fa-cart-plus"></i>Buy Now</button></a>
-                                  <button onclick="window.location='https://api.whatsapp.com/send?phone=<?= $sett->phone?>&amp;text=Hello, I want to purchase:*{{$item->product_name}}* Price:*{{$item->discount_price}} URL:*{{ url('/'); }}/{{$item->slug}}* Thank You !';" class="btn-cart px-3 ml-2" ><i class="fa fa-phone mr-1"></i> Chat On Whatsapp</button>
+                                  <button onclick="window.location='https://api.whatsapp.com/send?phone=<?= $setting->phone?>&amp;text=Hello, I want to purchase:*{{$item->product_name}}* Price:*{{$item->discount_price}} URL:*{{ url('/'); }}/{{$item->slug}}* Thank You !';" class="btn-cart px-3 ml-2" ><i class="fa fa-phone mr-1"></i> Chat On Whatsapp</button>
                                     </div>
                             </div>
                             

@@ -258,6 +258,20 @@ use App\Models\Admins\Gallerie;
                         
                         
                         <div class="row">
+                            <div class="col-sm-12">
+                                <div class="form-group"><label class="col-sm-12 control-label">Additional Information:</label>
+                                    <div class="col-sm-12">
+                                        <textarea class="summernote" name="add_info" id="add_info" rows="15">
+                                            <?php echo isset($edit->add_info) ? htmlspecialchars($edit->add_info) : null; ?>
+        
+                                        </textarea>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        
+                        <div class="row">
                             <div class="col-sm-4">
                                 <div class="form-group">
                                     <label class="col-sm-12 control-label">Featured image (Main Thumbnail):</label>

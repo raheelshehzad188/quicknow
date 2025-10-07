@@ -41,7 +41,6 @@ use App\Models\Admins\Slider;
             </div>
         </div>
     </div>
-    
     <!-- Featured End -->
 
 
@@ -155,3 +154,4 @@ use App\Models\Admins\Slider;
 
 
      @endsection
+    

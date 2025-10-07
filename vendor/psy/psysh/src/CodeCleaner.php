@@ -3,7 +3,7 @@
 /*
  * This file is part of Psy Shell.
  *
- * (c) 2012-2023 Justin Hileman
+ * (c) 2012-2022 Justin Hileman
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -18,13 +18,13 @@ use Psy\CodeCleaner\AbstractClassPass;
 use Psy\CodeCleaner\AssignThisVariablePass;
 use Psy\CodeCleaner\CalledClassPass;
 use Psy\CodeCleaner\CallTimePassByReferencePass;
-use Psy\CodeCleaner\CodeCleanerPass;
 use Psy\CodeCleaner\EmptyArrayDimFetchPass;
 use Psy\CodeCleaner\ExitPass;
 use Psy\CodeCleaner\FinalClassPass;
 use Psy\CodeCleaner\FunctionContextPass;
 use Psy\CodeCleaner\FunctionReturnInWriteContextPass;
 use Psy\CodeCleaner\ImplicitReturnPass;
+use Psy\CodeCleaner\InstanceOfPass;
 use Psy\CodeCleaner\IssetPass;
 use Psy\CodeCleaner\LabelContextPass;
 use Psy\CodeCleaner\LeavePsyshAlonePass;
@@ -49,8 +49,6 @@ use Psy\Exception\ParseErrorException;
 class CodeCleaner
 {
     private $yolo = false;
-    private $strictTypes = false;
-
     private $parser;
     private $printer;
     private $traverser;
@@ -59,18 +57,21 @@ class CodeCleaner
     /**
      * CodeCleaner constructor.
      *
-     * @param Parser|null        $parser      A PhpParser Parser instance. One will be created if not explicitly supplied
-     * @param Printer|null       $printer     A PhpParser Printer instance. One will be created if not explicitly supplied
-     * @param NodeTraverser|null $traverser   A PhpParser NodeTraverser instance. One will be created if not explicitly supplied
-     * @param bool               $yolo        run without input validation
-     * @param bool               $strictTypes enforce strict types by default
+     * @param Parser|null        $parser    A PhpParser Parser instance. One will be created if not explicitly supplied
+     * @param Printer|null       $printer   A PhpParser Printer instance. One will be created if not explicitly supplied
+     * @param NodeTraverser|null $traverser A PhpParser NodeTraverser instance. One will be created if not explicitly supplied
+     * @param bool               $yolo      run without input validation
      */
-    public function __construct(?Parser $parser = null, ?Printer $printer = null, ?NodeTraverser $traverser = null, bool $yolo = false, bool $strictTypes = false)
+    public function __construct(Parser $parser = null, Printer $printer = null, NodeTraverser $traverser = null, bool $yolo = false)
     {
         $this->yolo = $yolo;
-        $this->strictTypes = $strictTypes;
 
-        $this->parser = $parser ?? (new ParserFactory())->createParser();
+        if ($parser === null) {
+            $parserFactory = new ParserFactory();
+            $parser = $parserFactory->createParser();
+        }
+
+        $this->parser = $parser;
         $this->printer = $printer ?: new Printer();
         $this->traverser = $traverser ?: new NodeTraverser();
 
@@ -81,6 +82,8 @@ class CodeCleaner
 
     /**
      * Check whether this CodeCleaner is in YOLO mode.
+     *
+     * @return bool
      */
     public function yolo(): bool
     {
@@ -90,7 +93,7 @@ class CodeCleaner
     /**
      * Get default CodeCleaner passes.
      *
-     * @return CodeCleanerPass[]
+     * @return array
      */
     private function getDefaultPasses(): array
     {
@@ -114,6 +117,7 @@ class CodeCleaner
             new FinalClassPass(),
             new FunctionContextPass(),
             new FunctionReturnInWriteContextPass(),
+            new InstanceOfPass(),
             new IssetPass(),
             new LabelContextPass(),
             new LeavePsyshAlonePass(),
@@ -131,7 +135,7 @@ class CodeCleaner
             new MagicConstantsPass(),
             $namespacePass,           // must run after the implicit return pass
             new RequirePass(),
-            new StrictTypesPass($this->strictTypes),
+            new StrictTypesPass(),
 
             // Namespace-aware validation (which depends on aforementioned shenanigans)
             new ValidClassNamePass(),
@@ -146,7 +150,7 @@ class CodeCleaner
      * This list should stay in sync with the "rewriting shenanigans" in
      * getDefaultPasses above.
      *
-     * @return CodeCleanerPass[]
+     * @return array
      */
     private function getYoloPasses(): array
     {
@@ -165,7 +169,7 @@ class CodeCleaner
             new MagicConstantsPass(),
             $namespacePass,           // must run after the implicit return pass
             new RequirePass(),
-            new StrictTypesPass($this->strictTypes),
+            new StrictTypesPass(),
         ];
     }
 
@@ -197,7 +201,6 @@ class CodeCleaner
             }
 
             // Set up a clean traverser for just these code cleaner passes
-            // @todo Pass visitors directly to once we drop support for PHP-Parser 4.x
             $traverser = new NodeTraverser();
             foreach ($passes as $pass) {
                 $traverser->addVisitor($pass);
@@ -237,6 +240,8 @@ class CodeCleaner
      * Check whether a given backtrace frame is a call to Psy\debug.
      *
      * @param array $stackFrame
+     *
+     * @return bool
      */
     private static function isDebugCall(array $stackFrame): bool
     {
@@ -283,8 +288,10 @@ class CodeCleaner
      * Set the current local namespace.
      *
      * @param array|null $namespace (default: null)
+     *
+     * @return array|null
      */
-    public function setNamespace(?array $namespace = null)
+    public function setNamespace(array $namespace = null)
     {
         $this->namespace = $namespace;
     }
@@ -362,6 +369,8 @@ class CodeCleaner
      *
      * @param \PhpParser\Error $e
      * @param string           $code
+     *
+     * @return bool
      */
     private function parseErrorIsUnclosedString(\PhpParser\Error $e, string $code): bool
     {
