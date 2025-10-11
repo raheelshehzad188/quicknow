@@ -43,11 +43,28 @@ $Site= Setting::where(['id'=>'1'])->first();
         <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>	
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="csrf-token" content="{{ csrf_token() }}">
     </head>
     <body>
     @include('theme2.header')
     @yield('content')
     @include('theme2.footer')
     <script src="{{ $assets_url }}js/ayanstore.js"></script>
+    
+    <script>
+    // Search functionality
+    document.addEventListener('DOMContentLoaded', function() {
+        const searchInput = document.getElementById('searchInput');
+        if (searchInput) {
+            searchInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    document.getElementById('searchForm').submit();
+                }
+            });
+        }
+    });
+    </script>
+    
     </body>
 </html>

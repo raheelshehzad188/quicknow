@@ -63,6 +63,22 @@
                             <div class="col-sm-12"><input type="text" value="<?php echo isset($edit->phone) ? htmlspecialchars($edit->phone) : null; ?>" required class="form-control" name="phone"></div>
                         </div>
                         
+                        <div class="form-group"><label class="col-sm-12 control-label">WhatsApp Number:</label>
+                            <div class="col-sm-12"><input type="text" value="<?php echo isset($edit->whatsapp) ? htmlspecialchars($edit->whatsapp) : null; ?>" class="form-control" name="whatsapp" placeholder="03225386000"></div>
+                        </div>
+                        
+                        <div class="form-group"><label class="col-sm-12 control-label">Track Order Link:</label>
+                            <div class="col-sm-12"><input type="text" value="<?php echo isset($edit->track_order_link) ? htmlspecialchars($edit->track_order_link) : null; ?>" class="form-control" name="track_order_link" placeholder="https://example.com/track"></div>
+                        </div>
+                        
+                        <div class="form-group"><label class="col-sm-12 control-label">About Us Link:</label>
+                            <div class="col-sm-12"><input type="text" value="<?php echo isset($edit->about_us_link) ? htmlspecialchars($edit->about_us_link) : null; ?>" class="form-control" name="about_us_link" placeholder="https://example.com/about"></div>
+                        </div>
+                        
+                        <div class="form-group"><label class="col-sm-12 control-label">Contact Us Link:</label>
+                            <div class="col-sm-12"><input type="text" value="<?php echo isset($edit->contact_us_link) ? htmlspecialchars($edit->contact_us_link) : null; ?>" class="form-control" name="contact_us_link" placeholder="https://example.com/contact"></div>
+                        </div>
+                        
                         
                         
                         <div class="form-group"><label class="col-sm-12 control-label">Instagram Link:</label>

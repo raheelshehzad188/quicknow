@@ -194,6 +194,7 @@ Route::get('/blog_category/{id}',[Front\FrontController::class,'blog_category'])
 Route::get('/shape/{id}',[Front\FrontController::class,'shape_detail']);
 Route::get('/brand/{id}',[Front\FrontController::class,'brand_detail']);
 Route::get('/product-tag/{id}',[Front\FrontController::class,'tags_detail']);
+Route::get('/search',[Front\FrontController::class,'search_results']);
 Route::get('/search/{slug}',[Front\FrontController::class,'search_detail1']);
 Route::get('/order',[Front\FrontController::class,'order']);
 Route::get('/cart',[Front\FrontController::class,'cart']);
@@ -237,6 +238,7 @@ Route::post('/get_selected_size',[Front\FrontController::class,'get_selected_siz
 Route::post('/get_selected_detail',[Front\FrontController::class,'get_selected_detail'])->name('get_selected_detail');
 Route::any('/get_selected_price',[Front\FrontController::class,'get_selected_price'])->name('get_selected_price');
 Route::post('/cart/add', [Front\CartController::class,'add'])->name('cart');
+Route::get('/cart/data', [Front\CartController::class,'getCartData'])->name('cart.data');
 Route::POST('/subcribe_newsletter',[Front\FrontController::class,'subcribe_newsletter'])->name('subcribe_newsletter');
 Route::any('/forget_pass',[Front\FrontController::class,'forget_pass'])->name('forget_pass');
 

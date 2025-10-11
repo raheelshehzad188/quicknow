@@ -13,5 +13,5 @@ $bigcatdata = $category_id;
     <meta property="og:url" content="{{ url('/') . '/category/' . $bigcatdata->slug }}" />
     <meta name="twitter:title" content="{!! $bigcatdata->name !!}">
     <meta name="twitter:description" content="{!! trim(html_entity_decode($seo->description)) !!}">
-    <meta property="og:site_name" content="Quicknow.pk" />
+    <meta property="og:site_name" content="{{ $meta->title ?? 'Quicknow.pk' }}" />
 @endif

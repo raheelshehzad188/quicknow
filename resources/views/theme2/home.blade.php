@@ -23,6 +23,7 @@ use App\Models\Admins\Slider;
       @include('theme2/cats')
       @include('theme2/photos')
       @include('theme2/featured_categories')
+      @include('theme2/recent')
       
 
 

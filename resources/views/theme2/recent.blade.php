@@ -5,7 +5,7 @@
                                     <div class="swiper-wrapper">
                                         @foreach ($aproducts as  $k=>$v)
                                         <div class="swiper-slide" lazy="true">
-                                            @include('theme1/product_box')
+                                            @include('theme2/product_box')
                                             
                                             
                                         </div>

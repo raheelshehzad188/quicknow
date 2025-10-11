@@ -1041,6 +1041,10 @@ $ret = $query->offset($start)->limit($length)->get();
                
                 $setting->email=$request->email;
                 $setting->phone=$request->phone;
+                $setting->whatsapp=$request->whatsapp;
+                $setting->track_order_link=$request->track_order_link;
+                $setting->about_us_link=$request->about_us_link;
+                $setting->contact_us_link=$request->contact_us_link;
                 $setting->site_title=$request->site_title;
                 $setting->title=$request->title;
                 $setting->description=$request->description;

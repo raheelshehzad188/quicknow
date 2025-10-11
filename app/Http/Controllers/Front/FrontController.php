@@ -52,9 +52,13 @@ class FrontController extends Controller
 public function view($view, $data = array())
 {
     // $view = 'home';
-    $ctheme = 'theme2';
-    $layout = 'theme2.layout';
-    $assets = env('APP_URL').'theme2/';
+    $them_num = 2;
+    if(isset($_GET['theme'])){
+        $them_num = $_GET['theme'];
+    }
+    $ctheme = 'theme'.$them_num;
+    $layout = 'theme'.$them_num.'.layout';
+    $assets = env('APP_URL').'theme'.$them_num.'/';
     $data['layout'] = $layout;
     $data['assets_url'] = $assets;
 
@@ -230,7 +234,7 @@ public function view($view, $data = array())
         $products=Product::select('products.*')->where('status','1')->orderBy('products.id','DESC')->get();
     
         
-        $aproducts=Product::select('products.*')->where('status','1')->where('New_Arrival','1')->orderBy('products.id','DESC')->limit(10)->get();
+        $aproducts=Product::select('products.*')->where('status','1')->orderBy('products.created_at','DESC')->limit(10)->get();
         $onslaeproducts=Product::select('products.*')->where('status','1')->where('Sale','1')->orderBy('products.id','DESC')->limit(10)->get();
         $mostviewproducts=Product::select('products.*')->where('status','1')->orderBy('view','DESC')->limit(10)->get();
         $home_cats = DB::table('home_cats')->where->orderBy('home_cats.sort')->get();
@@ -335,7 +339,7 @@ public function view($view, $data = array())
     // product lists
     $products          = Product::where('status', 1)->orderBy('id', 'DESC')->get();
     $fproducts         = Product::where('status', 1)->where('Featured', 1)->orderBy('id', 'DESC')->limit(8)->get();
-    $aproducts         = Product::where('status', 1)->where('New_Arrival', 1)->orderBy('id', 'DESC')->limit(8)->get();
+    $aproducts         = Product::where('status', 1)->orderBy('created_at', 'DESC')->limit(8)->get();
     $onslaeproducts    = Product::where('status', 1)->where('Sale', 1)->orderBy('id', 'DESC')->limit(10)->get();
     $mostviewproducts  = Product::where('status', 1)->orderBy('view', 'DESC')->limit(10)->get();
     $home_cats         = DB::table('home_cats')->where('status', 1)->orderBy('home_cats.sort')->get();
@@ -467,7 +471,7 @@ public function view($view, $data = array())
     // product lists
     $products          = Product::where('status', 1)->orderBy('id', 'DESC')->get();
     $fproducts         = Product::where('status', 1)->where('Featured', 1)->orderBy('id', 'DESC')->limit(8)->get();
-    $aproducts         = Product::where('status', 1)->where('New_Arrival', 1)->orderBy('id', 'DESC')->limit(8)->get();
+    $aproducts         = Product::where('status', 1)->orderBy('created_at', 'DESC')->limit(8)->get();
     $onslaeproducts    = Product::where('status', 1)->where('Sale', 1)->orderBy('id', 'DESC')->limit(10)->get();
     $mostviewproducts  = Product::where('status', 1)->orderBy('view', 'DESC')->limit(10)->get();
     $home_cats         = DB::table('home_cats')->where('status', 1)->orderBy('home_cats.sort')->get();
@@ -1241,7 +1245,7 @@ return redirect()->back()->with([
                            "availability " => "InStock ", 
                            "seller " => [
                               "@type " => "Organization ", 
-                              "name" => "Online Quicknow.pk" 
+                              "name" => $meta->title ?? "Online Quicknow.pk" 
                            ] 
                         ] , 
    "BreadcrumbList " => array (
@@ -1394,7 +1398,7 @@ return redirect()->back()->with([
                     "availability"    => "https://schema.org/InStock",
                     "seller" => [
                         "@type" => "Organization",
-                        "name"  => "Online Quicknow.pk"
+                        "name"  => $meta->title ?? "Online Quicknow.pk"
                     ]
                 ],
             ];
@@ -2999,6 +3003,50 @@ private function sendEmailWithSendGrid($toEmail, $toName, $subject, $content) {
 
         return view('front.result_detail',compact('rproducts','categories','brands'));
      }
+    public function search_results(Request $request)
+    {
+        $search_query = $request->get('q', '');
+        
+        if(empty($search_query)) {
+            return redirect('/');
+        }
+        
+        $categories = Category::all();
+        $setting = DB::table('setting')->where('id', 1)->first();
+        
+        // Search in product name, product details, short description, tags, brand name, category name, and brand keywords
+        $rproducts = Product::where('status', 1)
+            ->where(function($query) use ($search_query) {
+                $query->where('product_name', 'like', '%'.$search_query.'%')
+                      ->orWhere('product_details', 'like', '%'.$search_query.'%')
+                      ->orWhere('short_discriiption', 'like', '%'.$search_query.'%')
+                      ->orWhere('tags', 'like', '%'.$search_query.'%')
+                      ->orWhere('product_code', 'like', '%'.$search_query.'%')
+                      ->orWhere('sku', 'like', '%'.$search_query.'%')
+                      ->orWhereHas('brand', function($q) use ($search_query) {
+                          $q->where('name', 'like', '%'.$search_query.'%')
+                            ->orWhere('keywords', 'like', '%'.$search_query.'%');
+                      })
+                      ->orWhereHas('category', function($q) use ($search_query) {
+                          $q->where('name', 'like', '%'.$search_query.'%')
+                            ->orWhere('keywords', 'like', '%'.$search_query.'%')
+                            ->orWhere('description', 'like', '%'.$search_query.'%');
+                      });
+            })
+            ->with(['brand', 'category'])
+            ->orderBy('product_name', 'asc')
+            ->get();
+        
+        // Set page title for SEO
+        Session::put('title', 'Search Results for "' . $search_query . '"');
+        
+        return view('theme2.list', [
+            'products' => $rproducts,
+            'title' => 'Search Results for "' . $search_query . '"',
+            'layout' => 'theme2.layout'
+        ]);
+    }
+
     public function search_detail1($slug)
     {
         // $brands=Brand::all();

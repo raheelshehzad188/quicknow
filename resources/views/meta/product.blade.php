@@ -7,5 +7,5 @@
 <meta property="og:title" content="{{ isset($meta->title)?$meta->title:'' }}" />
 <meta property="og:description" content="{{ (isset($meta->description)?$meta->description:'') }}" />
 <meta property="og:url" content="{{url('/').'/product/'.$product[0]->slug}}" />
-<meta property="og:site_name" content="Quicknow.pk" />
+<meta property="og:site_name" content="{{ $meta->title ?? 'Quicknow.pk' }}" />
 <meta property="og:image" content="{{ url($product[0]->image_one) }}" />

@@ -16,10 +16,18 @@
                     </div>
                     <div class="nav-col-right">
                         <ul>
-                            <li> <a href="#"> <i class="fa-brands fa-whatsapp"></i> 03225386000 </a> </li>
-                            <li> <a href="#"> Track Order </a> </li>
-                            <li> <a href="#"> About Us </a> </li>
-                            <li> <a href="#"> Contact Us </a> </li>
+                            @if(isset($setting->whatsapp) && !empty($setting->whatsapp))
+                            <li> <a href="https://wa.me/{{ $setting->whatsapp }}" target="_blank"> <i class="fa-brands fa-whatsapp"></i> {{ $setting->whatsapp }} </a> </li>
+                            @endif
+                            @if(isset($setting->track_order_link) && !empty($setting->track_order_link) && $setting->track_order_link != '#')
+                            <li> <a href="{{ $setting->track_order_link }}" target="_blank"> Track Order </a> </li>
+                            @endif
+                            @if(isset($setting->about_us_link) && !empty($setting->about_us_link) && $setting->about_us_link != '#')
+                            <li> <a href="{{ $setting->about_us_link }}" target="_blank"> About Us </a> </li>
+                            @endif
+                            @if(isset($setting->contact_us_link) && !empty($setting->contact_us_link) && $setting->contact_us_link != '#')
+                            <li> <a href="{{ $setting->contact_us_link }}" target="_blank"> Contact Us </a> </li>
+                            @endif
                         </ul>
                     </div>
                 </div><!--inside-nav-->
@@ -35,15 +43,16 @@
                         <a href="{{env('APP_URL')}}"> <img src="{{env('IMG_URL')}}{{$setting->logo}}" alt="logo"></a>
                     </div><!--header-logo-->
                     <div class="header-search">
-                        <form>
-                            <input type="text" name="search" placeholder="search your products">
+                        <form action="{{ url('/search') }}" method="GET" id="searchForm">
+                            <input type="text" name="q" placeholder="search your products" value="{{ request('q') }}" id="searchInput">
+                            <button type="submit" style="display: none;"></button>
                         </form>
-                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <i class="fa-solid fa-magnifying-glass" onclick="document.getElementById('searchForm').submit()"></i>
                     </div><!--inside-search-->
                     <div class="header-login-section">
                         <ul>
                             <li> <a href="#"> Sign In or Sign Up <i class="fa-solid fa-chevron-down"></i> <img src="{{ $assets_url }}img/reshot-icon-user-QLCUYJBKM3.svg"></a> </li>
-                            <li> <a href="#" class="openCart"> My Cart <span class="cart-count">{{ Session::has('cart') ? App\Helpers\Cart::qty() : 0 }}</span><img src="{{ $assets_url }}img/reshot-icon-shopping-cart-WFDT3CVZMJ.svg"></a> </li>
+                            <li> <a href="#" onlick="updateCartSidebar()" class="openCart"> My Cart <span class="cart-count">{{ Session::has('cart') ? App\Helpers\Cart::qty() : 0 }}</span><img src="{{ $assets_url }}img/reshot-icon-shopping-cart-WFDT3CVZMJ.svg"></a> </li>
                         </ul>
                     </div>
                 </div><!--inside-header-->

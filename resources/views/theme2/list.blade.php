@@ -20,7 +20,7 @@ use App\Models\Admins\Category;
             <div class="container">
                 <div class="inside-all-products">
                 @foreach ($products as  $k=>$v)
-                    @include('theme1/product_box')
+                    @include('theme2/product_box')
                     @endforeach
                     @if (!isset($pagination) && $products->hasPages())
     <div class="pagination-wrapper">

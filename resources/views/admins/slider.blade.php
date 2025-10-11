@@ -22,7 +22,7 @@
                                 <span class="help-block m-b-none text-danger">{{$message}}</span>
                                 @enderror
                                 @if(isset($edit->id))
-                                <img style="width:100px;" src="{{asset('')}}public/img/slider/{{$edit->slider_image}}" />
+                                <img style="width:100px;" src="{{ custom_assets('public/img/slider/' . $edit->slider_image) }}" />
                                 @endif
                             </div>
                         </div>
@@ -92,7 +92,7 @@
               @foreach ($sliders as $item)
                   <tr>
                     <td>{{$sr++}}</td>
-                    <td><img style="width:100px;" src="{{asset('')}}public/img/slider/{{$item->slider_image}}"/></td>
+                    <td><img style="width:100px;" src="{{ custom_assets('public/img/slider/' . $item->slider_image) }}"/></td>
                     <td>{{$item->created_at}}</td>
             
                     <td>

@@ -13,18 +13,16 @@ class CartController extends Controller
     public function add(Request $request)
     {
         if (Cart::add($request->id, $request->qty ?? 1)) {
-            // return Api::setResponse('qty', Cart::qty());
             return response()->json([
-            'msg'=>'Product Added to Cart',
-            'msg_type'=>'success',
-            'qty'=> Cart::qty()
-        ]);
+                'msg'=>'Product Added to Cart',
+                'msg_type'=>'success',
+                'qty'=> Cart::qty()
+            ]);
         } else {
-            return Api::setError('Item out of stock!');
             return response()->json([
-            'msg'=>'Product Added to Cart',
-            'msg_type'=>'danger',
-        ]);
+                'msg'=>'Item out of stock!',
+                'msg_type'=>'danger',
+            ]);
         }
     }
 
@@ -68,5 +66,35 @@ class CartController extends Controller
         Session::forget('coupen');
         Session::forget('check');
         return redirect()->back();
+    }
+
+    public function getCartData()
+    {
+        $cart = Session::get('cart', []);
+        $cartData = [
+            'qty' => 0,
+            'amount' => 0,
+            'items' => []
+        ];
+
+        if (!empty($cart) && isset($cart['items'])) {
+            $cartData['qty'] = $cart['qty'] ?? 0;
+            $cartData['amount'] = $cart['amount'] ?? 0;
+            
+            foreach ($cart['items'] as $item) {
+                $product = \App\Models\Admins\Product::find($item['id']);
+                if ($product) {
+                    $cartData['items'][] = [
+                        'id' => $item['id'],
+                        'name' => $product->product_name,
+                        'price' => $product->discount_price,
+                        'qty' => $item['qty'],
+                        'image' => !empty($product->image_one) ? custom_assets($product->image_one) : '/theme2/img/solo.webp'
+                    ];
+                }
+            }
+        }
+
+        return response()->json(['cart' => $cartData]);
     }
 }
