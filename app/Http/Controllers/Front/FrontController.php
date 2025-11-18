@@ -58,7 +58,7 @@ public function view($view, $data = array())
     }
     $ctheme = 'theme'.$them_num;
     $layout = 'theme'.$them_num.'.layout';
-    $assets = env('APP_URL').'theme'.$them_num.'/';
+    $assets = env('APP_URL').'public/theme'.$them_num.'/';
     $data['layout'] = $layout;
     $data['assets_url'] = $assets;
 
@@ -267,7 +267,10 @@ public function view($view, $data = array())
     $Rating        = Rating::all();
     $posts         = Blog_Post::all();
     $posts_home    = Blog_Post::take(3)->get(); // (not used below but kept in case your view needs it)
-    $categories    = Category::all();
+    $categories = Category::select('*')
+                      ->orderBy('id', 'desc')
+                      ->get(); 
+                      dd($categories);
 
     // attach product counts (faster: use count() query)
     foreach ($categories as $k => $v) {
@@ -399,7 +402,9 @@ public function view($view, $data = array())
     $Rating        = Rating::all();
     $posts         = Blog_Post::all();
     $posts_home    = Blog_Post::take(3)->get(); // (not used below but kept in case your view needs it)
-    $categories    = Category::all();
+    $categories = Category::select('*')
+                      ->orderBy('id', 'desc')
+                      ->get();
 
     // attach product counts (faster: use count() query)
     foreach ($categories as $k => $v) {
@@ -666,13 +671,14 @@ $in = array(
                 
                 $in = array(
                     'pid'=> $pro,
-                    'status'=> 1,
+                    'status'=> 0,
                     'name'=> $pcat['name'],
                     'review'=> $pcat['review'],
                     'rate'=> $pcat['rating'],
                     'email'=> $pcat['email'],
                     );
                     $pcat = DB::table('rating')->insertGetId($in);
+                    
             }
         }
         if($response['faq'])
@@ -1535,8 +1541,111 @@ return redirect()->back()->with([
     {
         Session::put('title','Shop');
         $page = "shop";
-        $products =Product::select('products.*')->where('status','1')->orderBy('view','DESC')->paginate(12);
+        $perPage = env('PRODUCTS_PER_PAGE', 12); // Default to 12, configurable via env
+        $products =Product::select('products.*')->where('status','1')->orderBy('view','DESC')->paginate($perPage);
         return $this->view('list',array('page'=>$page,'products'=>$products,'title'=> 'Shop'));
+    }
+    
+    public function loadMoreProducts(Request $request)
+    {
+        $page = $request->get('page', 1);
+        $perPage = env('PRODUCTS_PER_PAGE', 12); // Default to 12, configurable via env
+        $theme = $request->get('theme', 'theme2'); // Default to theme2
+        $categoryId = $request->get('category_id', null);
+        $brandId = $request->get('brand_id', null);
+        $searchQuery = $request->get('search_query', null);
+        $tagSlug = $request->get('tag_slug', null);
+        
+        // Extract theme number from theme string (e.g., 'theme2' -> 2, 'theme1' -> 1)
+        $them_num = 2; // default
+        if (preg_match('/theme(\d+)/', $theme, $matches)) {
+            $them_num = (int)$matches[1];
+        }
+        
+        $query = Product::select('products.*')->where('status','1');
+        
+        // If category_id is provided, filter by category
+        if ($categoryId) {
+            $query->where('category_id', $categoryId);
+        }
+        
+        // If brand_id is provided, filter by brand
+        if ($brandId) {
+            $query->where('brand', $brandId);
+        }
+        
+        // If tag_slug is provided, filter by tags
+        if ($tagSlug) {
+            $tagSlugFormatted = $tagSlug;
+            $tempQuery = clone $query;
+            $tempQuery->where('tags', 'like', '%' . $tagSlugFormatted . '%');
+            
+            // If no results found, try with space-separated version
+            if ($tempQuery->count() == 0) {
+                $tagSlugFormatted = preg_replace("/-/", " ", $tagSlug);
+            }
+            $query->where('tags', 'like', '%' . $tagSlugFormatted . '%');
+        }
+        
+        // If search_query is provided, apply search filters
+        if ($searchQuery) {
+            $query->where(function($q) use ($searchQuery) {
+                $q->where('product_name', 'like', '%'.$searchQuery.'%')
+                  ->orWhere('product_details', 'like', '%'.$searchQuery.'%')
+                  ->orWhere('short_discriiption', 'like', '%'.$searchQuery.'%')
+                  ->orWhere('tags', 'like', '%'.$searchQuery.'%')
+                  ->orWhere('product_code', 'like', '%'.$searchQuery.'%')
+                  ->orWhere('sku', 'like', '%'.$searchQuery.'%')
+                  ->orWhereHas('brand', function($brandQuery) use ($searchQuery) {
+                      $brandQuery->where('name', 'like', '%'.$searchQuery.'%')
+                                ->orWhere('keywords', 'like', '%'.$searchQuery.'%');
+                  })
+                  ->orWhereHas('category', function($catQuery) use ($searchQuery) {
+                      $catQuery->where('name', 'like', '%'.$searchQuery.'%')
+                               ->orWhere('keywords', 'like', '%'.$searchQuery.'%')
+                               ->orWhere('description', 'like', '%'.$searchQuery.'%');
+                  });
+            });
+        }
+        
+        $products = $query->orderBy('view','DESC')
+            ->paginate($perPage, ['*'], 'page', $page);
+            
+        // Generate HTML for products
+        $html = '';
+        foreach ($products as $product) {
+            // Determine which product box template to use based on theme
+            $template = 'theme1.product_box'; // Default
+            if ($theme === 'theme2') {
+                $template = 'theme2.product_box_new';
+            } elseif ($theme === 'front') {
+                $template = 'includes.parts.product_box';
+            }
+            
+            // Use IMG_URL if available, otherwise use APP_URL
+            $baseUrl = env('IMG_URL', env('APP_URL'));
+            $assets_url = rtrim($baseUrl, '/') . '/public/theme'.$them_num.'/';
+            
+            $html .= view($template, ['v' => $product, 'k' => $product->id,'assets_url'=>$assets_url])->render();
+        }
+        
+        // Return JSON response for AJAX requests or if Accept header includes application/json
+        if ($request->ajax() || $request->wantsJson() || $request->expectsJson()) {
+            return response()->json([
+                'html' => $html,
+                'hasMore' => $products->hasMorePages(),
+                'currentPage' => $products->currentPage(),
+                'lastPage' => $products->lastPage()
+            ]);
+        }
+        
+        // For direct browser access, return JSON anyway (for testing/debugging)
+        return response()->json([
+            'html' => $html,
+            'hasMore' => $products->hasMorePages(),
+            'currentPage' => $products->currentPage(),
+            'lastPage' => $products->lastPage()
+        ]);
     }
     
     public function user_register(Request $request)
@@ -1631,7 +1740,8 @@ return redirect()->back()->with([
                 $meta->scheme = $sch;
                             }
                             $category = 1;
-         $products=Product::where('status',1)->where(['category_id'=>$cateid , 'status'=>1])->paginate(20);
+         $perPage = env('PRODUCTS_PER_PAGE', 12); // Default to 12, configurable via env
+         $products=Product::where('status',1)->where(['category_id'=>$cateid , 'status'=>1])->paginate($perPage);
          $seo =  CategoriesToMeta::where('cid','=',$cateid)->first();
        
        
@@ -1703,6 +1813,10 @@ return redirect()->back()->with([
     
     public function checkout()
     {
+         // Check if cart is empty; if yes, redirect to home with error message
+         if (!Cart::products() || count(Cart::products()) == 0) {
+             return redirect('/')->withErrors(['msg' => 'You can not access checkout. Your cart is empty.']);
+         }
        
          if(Session::get('user')){
               $uid = Session::get('user')['id'];
@@ -1931,7 +2045,7 @@ private function sendEmailWithSendGrid($toEmail, $toName, $subject, $content) {
             $this->send_grid($to,'Order Email', $html);
             }
             Session::forget('cart');
-            return redirect('/my_account')->with([
+            return redirect('/thankyou/'.$lastid)->with([
                 'msg'=>'Order submit successfully',
                 'msg_type'=>'success',
             ]);
@@ -1982,11 +2096,23 @@ private function sendEmailWithSendGrid($toEmail, $toName, $subject, $content) {
             }
         
             Session::forget('cart');
-            return redirect('/')->with([
+            return redirect('/thankyou/'.$lastid)->with([
                 'msg'=>'Order submit successfully',
                 'msg_type'=>'success',
             ]);
         }
+    }
+    
+    public function thankyou($id)
+    {
+        $order = Order::where('id', $id)->get();
+        if($order->isEmpty()) {
+            return redirect('/')->with([
+                'msg'=>'Order not found',
+                'msg_type'=>'error',
+            ]);
+        }
+        return view('theme2.thankyou', ['order' => $order]);
     }
     
     public function instant_order(Request $request)
@@ -2052,6 +2178,17 @@ private function sendEmailWithSendGrid($toEmail, $toName, $subject, $content) {
             $rating->name=$request->name;
             $rating->email=$request->email;
             $rating->review=$request->review;
+            
+            // Handle image upload if provided
+            if ($request->hasFile('reviewImage')) {
+                $file = $request->file('reviewImage');
+                $extension = $file->getClientOriginalExtension();
+                $filename = time() . '.' . $extension;
+                $file->move(public_path('/images/reviews/'), $filename);
+                $rating->image = 'public/images/reviews/'.$filename;
+            }
+            
+            $rating->status = 0; // Set status to active
             $rating->save();
 
             $product = product::where(['id'=>$request->pid , 'status'=>1])->get();
@@ -2239,7 +2376,7 @@ private function sendEmailWithSendGrid($toEmail, $toName, $subject, $content) {
                         }
                     }elseif(count($selected_color) == 0 && count($selected_shap) > 0){
                         if($newto != '' && $datafrom != ''){
-                            $Products = DB::select("SELECT * FROM `products` WHERE product_shap IN (".implode(",",$selected_shap).") AND discount_price BETWEEN ".$newto." AND ".$datafrom." ORDER BY id DESC ");
+                            $Products = Dload-more-productsB::select("SELECT * FROM `products` WHERE product_shap IN (".implode(",",$selected_shap).") AND discount_price BETWEEN ".$newto." AND ".$datafrom." ORDER BY id DESC ");
                         }else{
                             $Products = DB::select("SELECT * FROM `products` WHERE product_shap IN (".implode(",",$selected_shap).") ORDER BY id DESC ");
                         }
@@ -2273,7 +2410,7 @@ private function sendEmailWithSendGrid($toEmail, $toName, $subject, $content) {
                 }else{
                     $gallary = '';
                 }
-                $html .= '<div class="c-product-grid_item"><div class="c-product-grid_thumb-wrap"><a href="product/'.$product->slug.'" class="lrv-loop-product_link"><img src="'.$product->image_one.'" class="c-product-grid_thumb"><img src="'.$gallary.'" class="c-product-grid_thumb product_grid_thumb_hover"></a><div class="c-product-grid_badges"></div><div class="c-product-grid_thumb-button-list"><button class="h-cb c-product-grid_thumb-button"><i class="ip-eye c-product-grid_icon"></i> <span class="c-product-grid_icon-text">Quick view</span></button> <button data-size="" class="js-wishlist-btn"><i class="ip-heart c-product-grid_icon"></i></button></div></div><a href="product/'.$product->slug.'" class="c-product-grid_atc"><span class="c-product-grid_atc-text">View Product</span></a><div class="c-product-grid_details"><div class="c-product-grid_title-wrap"><div class="c-product-grid_category-list"><a class="c-product-grid_category-item" href="/category/'.$cateslug.'">'.$catename.'</a></div><a href="product/'.$product->slug.'" class="product_link_link"><h2 class="lrv-loop-product_title">'.$product->product_name.'</h2></a></div><div class="c-product-grid_price-wrap"><span class="price"><span class="lrv-Price-amount amount"><bdi><span class="lrv-Price-currencySymbol">$</span>'.$product->discount_price.'</bdi></span></span></div></div></div>';
+                $html .= '<div class="c-product-grid_item"><div class="c-product-grid_thumb-wrap"><a href="product/'.$product->slug.'" class="lrv-loop-product_link"><img data-src="'.$product->image_one.'" src="data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 1 1\'%3E%3C/svg%3E" class="c-product-grid_thumb lazyload lazy-placeholder" loading="lazy"><img data-src="'.$gallary.'" src="data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 1 1\'%3E%3C/svg%3E" class="c-product-grid_thumb product_grid_thumb_hover lazyload lazy-placeholder" loading="lazy"></a><div class="c-product-grid_badges"></div><div class="c-product-grid_thumb-button-list"><button class="h-cb c-product-grid_thumb-button"><i class="ip-eye c-product-grid_icon"></i> <span class="c-product-grid_icon-text">Quick view</span></button> <button data-size="" class="js-wishlist-btn"><i class="ip-heart c-product-grid_icon"></i></button></div></div><a href="product/'.$product->slug.'" class="c-product-grid_atc"><span class="c-product-grid_atc-text">View Product</span></a><div class="c-product-grid_details"><div class="c-product-grid_title-wrap"><div class="c-product-grid_category-list"><a class="c-product-grid_category-item" href="/category/'.$cateslug.'">'.$catename.'</a></div><a href="product/'.$product->slug.'" class="product_link_link"><h2 class="lrv-loop-product_title">'.$product->product_name.'</h2></a></div><div class="c-product-grid_price-wrap"><span class="price"><span class="lrv-Price-amount amount"><bdi><span class="lrv-Price-currencySymbol">$</span>'.$product->discount_price.'</bdi></span></span></div></div></div>';
                 
             }
             
@@ -2471,7 +2608,7 @@ private function sendEmailWithSendGrid($toEmail, $toName, $subject, $content) {
                 }else{
                     $gallary = '';
                 }
-                $html .= '<div class="c-product-grid_item"><div class="c-product-grid_thumb-wrap"><a href="product/'.$product->slug.'" class="lrv-loop-product_link"><img src="'.$product->image_one.'" class="c-product-grid_thumb"><img src="'.$gallary.'" class="c-product-grid_thumb product_grid_thumb_hover"></a><div class="c-product-grid_badges"></div><div class="c-product-grid_thumb-button-list"><button class="h-cb c-product-grid_thumb-button"><i class="ip-eye c-product-grid_icon"></i> <span class="c-product-grid_icon-text">Quick view</span></button> <button data-size="" class="js-wishlist-btn"><i class="ip-heart c-product-grid_icon"></i></button></div></div><a href="product/'.$product->slug.'" class="c-product-grid_atc"><span class="c-product-grid_atc-text">View Product</span></a><div class="c-product-grid_details"><div class="c-product-grid_title-wrap"><div class="c-product-grid_category-list"><a class="c-product-grid_category-item" href="/category/'.$cateslug.'">'.$catename.'</a></div><a href="product/'.$product->slug.'" class="product_link_link"><h2 class="lrv-loop-product_title">'.$product->product_name.'</h2></a></div><div class="c-product-grid_price-wrap"><span class="price"><span class="lrv-Price-amount amount"><bdi><span class="lrv-Price-currencySymbol">$</span>'.$product->discount_price.'</bdi></span></span></div></div></div>';
+                $html .= '<div class="c-product-grid_item"><div class="c-product-grid_thumb-wrap"><a href="product/'.$product->slug.'" class="lrv-loop-product_link"><img data-src="'.$product->image_one.'" src="data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 1 1\'%3E%3C/svg%3E" class="c-product-grid_thumb lazyload lazy-placeholder" loading="lazy"><img data-src="'.$gallary.'" src="data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 1 1\'%3E%3C/svg%3E" class="c-product-grid_thumb product_grid_thumb_hover lazyload lazy-placeholder" loading="lazy"></a><div class="c-product-grid_badges"></div><div class="c-product-grid_thumb-button-list"><button class="h-cb c-product-grid_thumb-button"><i class="ip-eye c-product-grid_icon"></i> <span class="c-product-grid_icon-text">Quick view</span></button> <button data-size="" class="js-wishlist-btn"><i class="ip-heart c-product-grid_icon"></i></button></div></div><a href="product/'.$product->slug.'" class="c-product-grid_atc"><span class="c-product-grid_atc-text">View Product</span></a><div class="c-product-grid_details"><div class="c-product-grid_title-wrap"><div class="c-product-grid_category-list"><a class="c-product-grid_category-item" href="/category/'.$cateslug.'">'.$catename.'</a></div><a href="product/'.$product->slug.'" class="product_link_link"><h2 class="lrv-loop-product_title">'.$product->product_name.'</h2></a></div><div class="c-product-grid_price-wrap"><span class="price"><span class="lrv-Price-amount amount"><bdi><span class="lrv-Price-currencySymbol">$</span>'.$product->discount_price.'</bdi></span></span></div></div></div>';
                 
             }
             // return $html;
@@ -2661,7 +2798,7 @@ private function sendEmailWithSendGrid($toEmail, $toName, $subject, $content) {
                 }else{
                     $gallary = '';
                 }
-                $html .= '<div class="c-product-grid_item"><div class="c-product-grid_thumb-wrap"><a href="product/'.$product->slug.'" class="lrv-loop-product_link"><img src="'.$product->image_one.'" class="c-product-grid_thumb"><img src="'.$gallary.'" class="c-product-grid_thumb product_grid_thumb_hover"></a><div class="c-product-grid_badges"></div><div class="c-product-grid_thumb-button-list"><button class="h-cb c-product-grid_thumb-button"><i class="ip-eye c-product-grid_icon"></i> <span class="c-product-grid_icon-text">Quick view</span></button> <button data-size="" class="js-wishlist-btn"><i class="ip-heart c-product-grid_icon"></i></button></div></div><a href="product/'.$product->slug.'" class="c-product-grid_atc"><span class="c-product-grid_atc-text">View Product</span></a><div class="c-product-grid_details"><div class="c-product-grid_title-wrap"><div class="c-product-grid_category-list"><a class="c-product-grid_category-item" href="/category/'.$cateslug.'">'.$catename.'</a></div><a href="product/'.$product->slug.'" class="product_link_link"><h2 class="lrv-loop-product_title">'.$product->product_name.'</h2></a></div><div class="c-product-grid_price-wrap"><span class="price"><span class="lrv-Price-amount amount"><bdi><span class="lrv-Price-currencySymbol">$</span>'.$product->discount_price.'</bdi></span></span></div></div></div>';
+                $html .= '<div class="c-product-grid_item"><div class="c-product-grid_thumb-wrap"><a href="product/'.$product->slug.'" class="lrv-loop-product_link"><img data-src="'.$product->image_one.'" src="data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 1 1\'%3E%3C/svg%3E" class="c-product-grid_thumb lazyload lazy-placeholder" loading="lazy"><img data-src="'.$gallary.'" src="data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 1 1\'%3E%3C/svg%3E" class="c-product-grid_thumb product_grid_thumb_hover lazyload lazy-placeholder" loading="lazy"></a><div class="c-product-grid_badges"></div><div class="c-product-grid_thumb-button-list"><button class="h-cb c-product-grid_thumb-button"><i class="ip-eye c-product-grid_icon"></i> <span class="c-product-grid_icon-text">Quick view</span></button> <button data-size="" class="js-wishlist-btn"><i class="ip-heart c-product-grid_icon"></i></button></div></div><a href="product/'.$product->slug.'" class="c-product-grid_atc"><span class="c-product-grid_atc-text">View Product</span></a><div class="c-product-grid_details"><div class="c-product-grid_title-wrap"><div class="c-product-grid_category-list"><a class="c-product-grid_category-item" href="/category/'.$cateslug.'">'.$catename.'</a></div><a href="product/'.$product->slug.'" class="product_link_link"><h2 class="lrv-loop-product_title">'.$product->product_name.'</h2></a></div><div class="c-product-grid_price-wrap"><span class="price"><span class="lrv-Price-amount amount"><bdi><span class="lrv-Price-currencySymbol">$</span>'.$product->discount_price.'</bdi></span></span></div></div></div>';
                 
             }
             // return $html;
@@ -2917,27 +3054,29 @@ private function sendEmailWithSendGrid($toEmail, $toName, $subject, $content) {
 
     public function brand_detail($slug)
     {
+        Session::put('title','Brand');
+        $page = "brand";
+        $perPage = env('PRODUCTS_PER_PAGE', 12); // Default to 12, configurable via env
         
-        
-        
-        
-        $brands=Brand::all();
-        $Slider=Slider::all();
-        $categories=Category::all();
-
-        $brand_id = brand::where(['slug'=>$slug , 'status'=>1])->get();
-       
-        $brand = array();
-        if(isset($brand_id[0]))
-        {
-            $brand = $brand_id[0];
+        $brand_id = Brand::where(['slug'=>$slug , 'status'=>1])->first();
+        if(!$brand_id) {
+            return abort(404);
         }
-        $meta_file  = 'meta.brand';
-        $rproducts = product::where(['brand'=>$brand_id[0]->id , 'status'=>1])->get();
-        if($brand)
-        return view('front.brand_detail',compact('rproducts','categories','brands','brand','meta_file' ));
-        else
-        abort(404);
+        
+        $products = Product::select('products.*')
+            ->where('status','1')
+            ->where('brand', $brand_id->id)
+            ->orderBy('view','DESC')
+            ->paginate($perPage);
+            
+        return $this->view('list',array(
+            'page'=>$page,
+            'products'=>$products,
+            'title'=> $brand_id->name,
+            'brand_name' => $brand_id->name,
+            'brand_slug' => $brand_id->slug,
+            'brand_id' => $brand_id->id
+        ));
     }
     
     
@@ -2976,21 +3115,23 @@ private function sendEmailWithSendGrid($toEmail, $toName, $subject, $content) {
         $categories=Category::all();
         $nslug = $slug;
 
-
-    $rproducts = Product::where('tags', 'like', '%' . $nslug . '%')->get();
-    
-
-    if ($rproducts->isEmpty() || $rproducts === null) {
-        $nslug = preg_replace("/-/", " ", $slug);
-        $rproducts = Product::where('tags', 'like', '%' . $nslug . '%')->get();
-    }
-        $product = $rproducts; 
-        // dd($product);
-
         $tags = str_replace('-', ' ', $slug);
         $meta_file  = 'meta.product_tag';
+        
+        $perPage = env('PRODUCTS_PER_PAGE', 12); // Default to 12, configurable via env
+        
+        $query = Product::where('status', 1)->where('tags', 'like', '%' . $nslug . '%');
+        
+        if ($query->count() == 0) {
+            $nslug = preg_replace("/-/", " ", $slug);
+            $query = Product::where('status', 1)->where('tags', 'like', '%' . $nslug . '%');
+        }
+        
+        $rproducts = $query->orderBy('view','DESC')->paginate($perPage);
+        $product = $rproducts; 
 
-        return $this->view('tags',array('products'=>$rproducts,'title'=>$nslug,'tags'=> $tags,'slug'=> $slug,'meta_file'=> $meta_file,'product'=>$product,'pagination'=>0));
+        Session::put('title', $nslug);
+        return $this->view('list',array('products'=>$rproducts,'title'=>$nslug,'tags'=> $tags,'slug'=> $slug,'meta_file'=> $meta_file,'product'=>$product,'pagination'=>0));
     }
 
     public function search_detail(Request $slug)
@@ -3015,6 +3156,7 @@ private function sendEmailWithSendGrid($toEmail, $toName, $subject, $content) {
         $setting = DB::table('setting')->where('id', 1)->first();
         
         // Search in product name, product details, short description, tags, brand name, category name, and brand keywords
+        $perPage = env('PRODUCTS_PER_PAGE', 12);
         $rproducts = Product::where('status', 1)
             ->where(function($query) use ($search_query) {
                 $query->where('product_name', 'like', '%'.$search_query.'%')
@@ -3035,16 +3177,88 @@ private function sendEmailWithSendGrid($toEmail, $toName, $subject, $content) {
             })
             ->with(['brand', 'category'])
             ->orderBy('product_name', 'asc')
-            ->get();
+            ->paginate($perPage);
         
         // Set page title for SEO
         Session::put('title', 'Search Results for "' . $search_query . '"');
         
-        return view('theme2.list', [
+        return $this->view('list', [
             'products' => $rproducts,
             'title' => 'Search Results for "' . $search_query . '"',
-            'layout' => 'theme2.layout'
+            'page' => 'search',
+            'search_query' => $search_query
         ]);
+    }
+
+    public function liveSearch(Request $request)
+    {
+        $search_query = $request->get('q', '');
+        
+        if(empty($search_query) || strlen($search_query) < 2) {
+            return response()->json(['products' => []]);
+        }
+        
+        // Search in product name, product details, short description, tags, brand name, category name
+        $products = Product::where('status', 1)
+            ->where(function($query) use ($search_query) {
+                $query->where('product_name', 'like', '%'.$search_query.'%')
+                      ->orWhere('product_details', 'like', '%'.$search_query.'%')
+                      ->orWhere('short_discriiption', 'like', '%'.$search_query.'%')
+                      ->orWhere('tags', 'like', '%'.$search_query.'%')
+                      ->orWhere('product_code', 'like', '%'.$search_query.'%')
+                      ->orWhere('sku', 'like', '%'.$search_query.'%')
+                      ->orWhereHas('brand', function($q) use ($search_query) {
+                          $q->where('name', 'like', '%'.$search_query.'%')
+                            ->orWhere('keywords', 'like', '%'.$search_query.'%');
+                      })
+                      ->orWhereHas('category', function($q) use ($search_query) {
+                          $q->where('name', 'like', '%'.$search_query.'%')
+                            ->orWhere('keywords', 'like', '%'.$search_query.'%')
+                            ->orWhere('description', 'like', '%'.$search_query.'%');
+                      });
+            })
+            ->with(['brand', 'category'])
+            ->orderBy('product_name', 'asc')
+            ->limit(10)
+            ->get();
+        
+        $results = [];
+        foreach($products as $product) {
+            $imageUrl = '';
+            // Check which image field exists
+            $imageField = $product->image_one ?? $product->image ?? null;
+            
+            if ($imageField) {
+                if (strpos($imageField, 'http') === 0) {
+                    $imageUrl = $imageField;
+                } else {
+                    // Use custom_assets helper if available, otherwise construct URL
+                    if (function_exists('custom_assets')) {
+                        $imageUrl = custom_assets($imageField);
+                    } else {
+                        // Remove 'public/' if it exists in the path to avoid duplicate
+                        $imagePath = ltrim($imageField, '/');
+                        if (strpos($imagePath, 'public/') === 0) {
+                            $imagePath = substr($imagePath, 7); // Remove 'public/' prefix
+                        }
+                        // Use IMG_URL if available, otherwise use APP_URL
+                        $baseUrl = env('IMG_URL', env('APP_URL'));
+                        $imageUrl = rtrim($baseUrl, '/') . '/' . ltrim($imagePath, '/');
+                    }
+                }
+            }
+            
+            $results[] = [
+                'id' => $product->id,
+                'name' => $product->product_name,
+                'slug' => $product->slug ?? '',
+                'image' => $imageUrl,
+                'price' => $product->price ?? 0,
+                'url' => url('/product/' . ($product->slug ?? ''))
+            ];
+        }
+        
+        return response()->json(['products' => $results]);
     }
 
     public function search_detail1($slug)

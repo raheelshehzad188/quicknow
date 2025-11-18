@@ -55,41 +55,6 @@ Route::get('/theme2/js/{file}', function($file) {
     abort(404);
 });
 
-Route::get('/theme2/img/{file}', function($file) {
-    $path = public_path("theme2/img/{$file}");
-    if (file_exists($path)) {
-        $extension = pathinfo($path, PATHINFO_EXTENSION);
-        $contentType = match($extension) {
-            'jpg', 'jpeg' => 'image/jpeg',
-            'png' => 'image/png',
-            'svg' => 'image/svg+xml',
-            'gif' => 'image/gif',
-            'webp' => 'image/webp',
-            default => 'image/jpeg'
-        };
-        return response()->file($path, ['Content-Type' => $contentType]);
-    }
-    abort(404);
-});
-
-// Slider images route
-Route::get('/theme2/img/slider/{file}', function($file) {
-    $path = public_path("theme2/img/slider/{$file}");
-    if (file_exists($path)) {
-        $extension = pathinfo($path, PATHINFO_EXTENSION);
-        $contentType = match($extension) {
-            'jpg', 'jpeg' => 'image/jpeg',
-            'png' => 'image/png',
-            'svg' => 'image/svg+xml',
-            'gif' => 'image/gif',
-            'webp' => 'image/webp',
-            default => 'image/jpeg'
-        };
-        return response()->file($path, ['Content-Type' => $contentType]);
-    }
-    abort(404);
-});
-
 
 
 Route::get('/admin', function () {
@@ -196,6 +161,7 @@ Route::get('/brand/{id}',[Front\FrontController::class,'brand_detail']);
 Route::get('/product-tag/{id}',[Front\FrontController::class,'tags_detail']);
 Route::get('/search',[Front\FrontController::class,'search_results']);
 Route::get('/search/{slug}',[Front\FrontController::class,'search_detail1']);
+Route::get('/api/live-search',[Front\FrontController::class,'liveSearch'])->name('live.search');
 Route::get('/order',[Front\FrontController::class,'order']);
 Route::get('/cart',[Front\FrontController::class,'cart']);
 Route::get('/contact',[Front\FrontController::class,'contact']);
@@ -213,6 +179,7 @@ Route::post('user_update', [Front\FrontController::class,'user_update']);
 Route::get('checkout', [Front\FrontController::class,'checkout']);
 Route::get('guest_checkout', [Front\FrontController::class,'guest_checkout']);
 Route::get('track_order', [Front\FrontController::class,'track_order']);
+Route::get('thankyou/{id}', [Front\FrontController::class,'thankyou'])->name('thankyou');
 
 Route::get('/page/{id}',[Front\FrontController::class,'page_detail']);
 // Route::get('/about',[Front\FrontController::class,'about'])->name('about');
@@ -241,6 +208,7 @@ Route::post('/cart/add', [Front\CartController::class,'add'])->name('cart');
 Route::get('/cart/data', [Front\CartController::class,'getCartData'])->name('cart.data');
 Route::POST('/subcribe_newsletter',[Front\FrontController::class,'subcribe_newsletter'])->name('subcribe_newsletter');
 Route::any('/forget_pass',[Front\FrontController::class,'forget_pass'])->name('forget_pass');
+Route::get('/load-more-products',[Front\FrontController::class,'loadMoreProducts'])->name('load-more-products');
 
 
 Route::get('/{slug}',[Front\FrontController::class,'find']);
