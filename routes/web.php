@@ -57,11 +57,13 @@ Route::get('/theme2/js/{file}', function($file) {
 
 
 
-Route::get('/admin', function () {
-    return redirect('admin/login');
-});
 Route::get('/wishlist/{id}',[Front\FrontController::class,'wishlist']); 
 Route::get('/my_wishlist',[Front\FrontController::class,'my_wishlist']); 
+
+// Admin routes - must be before catch-all route
+Route::get('/admin', function () {
+    return redirect(url('/admin/login'));
+});
 Route::name('admins.')->prefix('/admin')->group(function () {
     
     
@@ -182,7 +184,7 @@ Route::get('track_order', [Front\FrontController::class,'track_order']);
 Route::get('thankyou/{id}', [Front\FrontController::class,'thankyou'])->name('thankyou');
 
 Route::get('/page/{id}',[Front\FrontController::class,'page_detail']);
-// Route::get('/about',[Front\FrontController::class,'about'])->name('about');
+Route::get('/about',[Front\FrontController::class,'about'])->name('about');
 Route::get('/learn',[Front\FrontController::class,'learn'])->name('learn');
 Route::get('/faq',[Front\FrontController::class,'faq'])->name('faq');
 Route::post('/order',[Front\FrontController::class,'order'])->name('order');
@@ -198,6 +200,9 @@ Route::post('/trackorder',[Front\FrontController::class,'trackorder'])->name('tr
 Route::any('/import',[Front\FrontController::class,'import'])->name('import');
 Route::any('/import_tag',[Front\FrontController::class,'import_tag'])->name('import_all');
 Route::any('/import_all/{id}',[Front\FrontController::class,'import_all'])->name('import_all');
+Route::get('/api/product/{pid}', [Front\ProductApiController::class, 'getProductData'])->name('api.product.data');
+Route::get('/api/brand/{bid}', [Front\ProductApiController::class, 'getBrandData'])->name('api.brand.data');
+Route::get('/api/subcategory/{cid}', [Front\ProductApiController::class, 'getSubcategoryData'])->name('api.subcategory.data');
 
 Route::post('/get_selected_shap',[Front\FrontController::class,'get_selected_shap'])->name('get_selected_shap');
 Route::post('/get_selected_color',[Front\FrontController::class,'get_selected_color'])->name('get_selected_color');
@@ -210,8 +215,8 @@ Route::POST('/subcribe_newsletter',[Front\FrontController::class,'subcribe_newsl
 Route::any('/forget_pass',[Front\FrontController::class,'forget_pass'])->name('forget_pass');
 Route::get('/load-more-products',[Front\FrontController::class,'loadMoreProducts'])->name('load-more-products');
 
-
-Route::get('/{slug}',[Front\FrontController::class,'find']);
+// Catch-all route - must be last, exclude admin routes
+Route::get('/{slug}',[Front\FrontController::class,'find'])->where('slug', '^(?!admin).*$');
 
 
 

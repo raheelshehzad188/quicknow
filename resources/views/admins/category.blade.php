@@ -42,6 +42,18 @@
                         </div>
                         
                         <div class="form-group" style="display: flex;flex-direction: column;">
+                          <label for="sort">Sort Order:</label>
+                          <input type="number" name="sort" value="{{isset($edit->sort) ? $edit->sort : 0}}" id="sort" class="form-control" min="0">
+                          <small class="text-muted">Lower numbers appear first</small>
+                        </div>
+                        
+                        <div class="form-group" style="display: flex;flex-direction: column;">
+                          <label for="home_sort">Home Page Sort Order:</label>
+                          <input type="number" name="home_sort" value="{{isset($edit->home_sort) ? $edit->home_sort : 0}}" id="home_sort" class="form-control" min="0">
+                          <small class="text-muted">Sort order for featured categories on homepage (lower numbers appear first)</small>
+                        </div>
+                        
+                        <div class="form-group" style="display: flex;flex-direction: column;">
                             <label for="exampleInputEmail2">Featured image (Main Thumbnail):</label>
                             <input type="file" onchange="readURL(this);" <?php echo isset($edit->id) ? null : "required"; ?> accept="image/png, image/gif, image/jpeg" class="form-control" name="image_one">
                             <img src="<?php echo isset($edit->image) ? asset($edit->image) : null; ?>"  alt="" <?php echo isset($edit->image) ? 'style="width:100px;"' : 'style="display:none;width:100px;"'; ?>>
@@ -137,6 +149,8 @@
               <th>Sr.No</th>
               <th>Image</th>
               <th>Category</th>
+              <th>Sort</th>
+              <th>Home Sort</th>
               <th>Creation Ago</th>
               <th>Show on Home</th>
               <th>Action</th>
@@ -149,6 +163,8 @@
                   <td>{{$sr++}}</td>
                  <td><img src="{{asset($item->image)}}" style="width:50px;" ></td>
                   <td>{{$item->name}}</td>
+                  <td>{{$item->sort ?? 0}}</td>
+                  <td>{{$item->home_sort ?? 0}}</td>
                   <td>{{\Carbon\Carbon::parse($item->created_at)->diffForHumans()}}</td>
                     <td>
                         <div class="switch">

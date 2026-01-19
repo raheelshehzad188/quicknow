@@ -42,6 +42,11 @@ class Setting extends Model
         'shipping_charges',
         'footer_text',
         'news_text',
-        'dir_link'
+        'dir_link',
+        'primary_color',
+        'navigation_color',
+        'button_color',
+        'theme_style',
+        'head_scripts'
     ];
 }

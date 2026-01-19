@@ -47,11 +47,17 @@ class AdminController extends Controller
 
     public function adminloginpage()
     {
-        if(Session::has('admin'))
-        {
-            return redirect('admin/dashboard');
+        try {
+            if(Session::has('admin'))
+            {
+                return redirect(url('/admin/dashboard'));
+            }
+            return view('admins.login');
+        } catch (\Exception $e) {
+            // Log error for debugging
+            \Log::error('Admin login page error: ' . $e->getMessage());
+            return view('admins.login');
         }
-        return view('admins.login');
     }
 
     function admin_login_submit(Request $req)
@@ -245,7 +251,6 @@ class AdminController extends Controller
                  $tags = preg_replace('/\s+/', '-', $request->tags);
                
                 $category->keywords=$tags;
-                $category->s_keywords=$request->s_keywords;
                  $category->s_schema=$request->s_schema;
                
                 
@@ -271,9 +276,7 @@ class AdminController extends Controller
                 $category->description=$request->description;
                 $tags = preg_replace('/\s+/', '-', $request->tags);
                
-                $category->keywords=$tags;
-                $category->s_keywords=$request->s_keywords;
-                $category->s_schema=$request->s_schema;
+                $category->keywords=$tags; 
                
                 // if(isset($request->image_one)){
                 //     $imageone = $request->image_one;
@@ -325,6 +328,8 @@ class AdminController extends Controller
                 $category->name=$request->name;
                 $category->status=$request->status;
                 $category->short_description=$request->short_description;
+                $category->sort=$request->sort ?? 0;
+                $category->home_sort=$request->home_sort ?? 0;
                 $category->slug= strtolower(trim(preg_replace('/[^A-Za-z0-9-]+/', '-', $request->name)));
                 /*if(isset($request->image_one)){
                     $imageone = $request->image_one;
@@ -374,6 +379,9 @@ class AdminController extends Controller
                 $category->name=$request->name;
                 $category->status=$request->status;
                  $category->short_description=$request->short_description;
+                $category->sort=$request->sort ?? 0;
+                $category->home_sort=$request->home_sort ?? 0;
+                $category->sort=$request->sort ?? 0;
                 // if(isset($request->image_one)){
                 //     $imageone = $request->image_one;
                 //     $pimage_name = time().$imageone->getClientOriginalName();
@@ -414,7 +422,7 @@ class AdminController extends Controller
                 'msg_type'=>'success',
             ]);
         }
-        $categories=Category::all();
+        $categories=Category::orderBy('sort', 'ASC')->orderBy('id', 'DESC')->get();
         return view('admins.category',compact('categories','edit','seo'));
     }
     
@@ -659,7 +667,7 @@ class AdminController extends Controller
             ]);
         }
         if($id>0 && !isset($delete)){
-             $seo = CategoriesToMeta::where('scid', '=',  $id)->first();
+             $seo = CategoriesToMeta::where('id', '=',  $id)->first();
             $edit=SubCategory::find($id);
         }
         if ($request->isMethod('post')) {
@@ -677,7 +685,7 @@ class AdminController extends Controller
             if($request->has('hidden_id')){
               
                 $category=SubCategory::find($request->hidden_id);
-                $seo = CategoriesToMeta::where('scid', '=',  $request->hidden_id)->first(); 
+                $seo = CategoriesToMeta::where('id', '=',  $request->hidden_id)->first(); 
                 
                  
             }else{
@@ -690,32 +698,13 @@ class AdminController extends Controller
             $category->name=$request->name;
             $category->slug=strtolower(trim(preg_replace('/[^A-Za-z0-9-]+/', '-', $request->name)));
             $category->category_id=$request->category_id;
-            $category->keywords=$request->keywords;
-            $category->description=$request->description;
-            $category->title=$request->title;
-            $category->short_description=$request->short_description;
             $category->updated_at=Date('Y-m-d h:i:s');
             $category->save();
             
           
              
             
-                if($seo){
-                    
-                    $seo->title = $request->title;
-                    $seo->description = $request->description;
-                    $seo->keywords = $request->keywords;
-                    $seo->save();
-                }else{
-                 
-                  
-                    $categoriesmeta = new CategoriesToMeta();
-                    $categoriesmeta->scid = $category->id;
-                    $categoriesmeta->title = $request->title;
-                    $categoriesmeta->description = $request->description;
-                    $categoriesmeta->keywords = $request->keywords;
-                    $categoriesmeta->save();
-                }
+                
             return redirect(route('admins.subcategory'))->with([
                 'msg'=>'SubCategory Saved Successfully',
                 'msg_type'=>'success',
@@ -1059,6 +1048,7 @@ $ret = $query->offset($start)->limit($length)->get();
                 $setting->twitter=$request->twitter;
                 $setting->tiktok=$request->tiktok;
                 $setting->pinterest=$request->pinterest;
+                $setting->youtube=$request->youtube;
                 
                 $setting->homepage_footer=$request->homepage_footer;
                 $setting->homepage_img1d=$request->homepage_img1d;
@@ -1068,8 +1058,13 @@ $ret = $query->offset($start)->limit($length)->get();
                 $setting->homepage_img5d=$request->homepage_img5d;
                 $setting->homepage_img6d=$request->homepage_img6d;
                 $setting->shipping_charges=$request->shipping_charges;
-               $setting->footer_text=$request->footer;
-               $setting->news_text=$request->news_text;
+                $setting->footer_text=$request->footer;
+                $setting->news_text=$request->news_text;
+                $setting->primary_color=$request->primary_color;
+                $setting->navigation_color=$request->navigation_color;
+                $setting->button_color=$request->button_color;
+                $setting->theme_style=$request->theme_style;
+                $setting->head_scripts=$request->head_scripts;
                 $setting->save();
             }
         }
@@ -1631,6 +1626,8 @@ $ret = $query->offset($start)->limit($length)->get();
     public function gallery_delete($id)
     {
         $gallery=Gallerie::find($id);
+        dd($gallery);
+        
         $img_one=public_path().'/'.$gallery->photo;
         if(\File::exists($img_one)){
             \File::delete($img_one);
