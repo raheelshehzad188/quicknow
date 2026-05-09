@@ -28,21 +28,17 @@ class CartController extends Controller
 
     public function remove($id)
     {
-            $cart = Session::get('cart', []);
-            foreach($cart['items'] as $k=> $v)
-            {
-                if($v['id'] == $id)
-                {
-                    unset($cart['items'][$k]);
-                }
-            }
-        Session::put('cart', $cart);
-
-    return redirect('/checkout')->with([
-                'msg'=>'Cart item removed successfully',
-                'msg_type'=>'success',
-            ]);
-
+        Cart::remove($id);
+        
+        // Return JSON response for AJAX requests
+        if (request()->wantsJson() || request()->ajax()) {
+            return Api::setResponse('cart', Session::get('cart', []));
+        }
+        
+        return redirect('/checkout')->with([
+            'msg'=>'Cart item removed successfully',
+            'msg_type'=>'success',
+        ]);
     }
 
     public function increment(Request $request)
@@ -62,9 +58,8 @@ class CartController extends Controller
 
     public function clear()
     {
-        Session::forget('cart');
-        Session::forget('coupen');
-        Session::forget('check');
+        // Clear from both session and database
+        Cart::clear();
         return redirect()->back();
     }
 
@@ -74,12 +69,21 @@ class CartController extends Controller
         $cartData = [
             'qty' => 0,
             'amount' => 0,
-            'items' => []
+            'items' => [],
+            'shipping_charges' => 0
         ];
 
+        // Get shipping charges from settings
+        $setting = \DB::table('setting')->where('id', 1)->first();
+        $shippingCharges = $setting ? ($setting->shipping_charges ?? 0) : 0;
+
         if (!empty($cart) && isset($cart['items'])) {
-            $cartData['qty'] = $cart['qty'] ?? 0;
+            $cartData['qty'] = count($cart['items']) ?? 0;
             $cartData['amount'] = $cart['amount'] ?? 0;
+            $cartData['shipping_charges'] = $shippingCharges;
+            
+            // Re-index items array to remove gaps
+            $cart['items'] = array_values($cart['items']);
             
             foreach ($cart['items'] as $item) {
                 $product = \App\Models\Admins\Product::find($item['id']);

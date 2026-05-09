@@ -196,12 +196,12 @@
 				
                 @foreach($cate as $k=> $v)	
                 <li class="has-submenu">
-                    <a href="{{ url('/')}}/{{$v->slug}}" class="category-link">{{$v->name}}</a>
+                    <a href="{{ url('/')}}/category/{{$v->slug}}" class="category-link">{{$v->name}}</a>
                     @if(isset($v->subcategories) && count($v->subcategories) > 0)
                     <i class="fa-solid fa-caret-down toggle-submenu"></i>
                     <ul class="submenu">
                         @foreach($v->subcategories as $sub)
-                        <li><a href="{{ url('/')}}/{{$sub->slug}}">{{$sub->name}}</a></li>
+                        <li><a href="{{ url('/')}}/category/{{$sub->slug}}">{{$sub->name}}</a></li>
                         @endforeach
                     </ul>
                     @endif

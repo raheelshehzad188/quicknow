@@ -1,4 +1,8 @@
 <?php
+// Suppress vendor deprecations on PHP 8.4+ (must run before any require)
+if (PHP_VERSION_ID >= 80400) {
+    error_reporting(E_ALL & ~E_DEPRECATED & ~E_USER_DEPRECATED);
+}
 use Illuminate\Contracts\Http\Kernel;
 use Illuminate\Http\Request;
 

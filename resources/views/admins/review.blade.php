@@ -32,54 +32,68 @@ use App\Models\Admins\Brand;
                 <h5>Subcriber List</h5>
             </div>
             <div class="ibox-content">
-  
-                <div class="table-responsive">
-            <table class="table table-striped table-bordered table-hover dataTables-example" >
-            <thead>
-            <tr>
-                <th>#</th>
-                <th>Product Name</th>
-                <th>Customer Name</th>
-                <th>Review</th>
-                <th>Rating</th>
-                <th>Customer Email</th>
-                <th>Status</th>
-                <th>Action</th>
-            </tr>
-            </thead>
-            <tbody>
-                @foreach($reviews as $review)
-                <tr>
-                    <?php 
-                        $products = product::where(['id'=>$review->pid])->get();
-                    ?>
-                    
-                    @foreach($products as $product)
-                    <td>{{$review->id}}</td>
-                    <td>{{$product->product_name}}</td>
-                    @endforeach
-                    
-                    <td>{{$review->name}}</td>
-                    <td>{{$review->review}}</td>
-                    <td>{{$review->rate}}</td>
-                    <td>{{$review->email}}</td>
-                    <td>
-                        <div class="switch">
-                            <div class="onoffswitch">
-                                <input type="checkbox" name="product_status" data-id="{{$review->id}}" <?php echo $review->status==1 ? 'checked' : null; ?> class="onoffswitch-checkbox toggle-event" id="example-{{$review->id}}">
-                                <label class="onoffswitch-label" for="example-{{$review->id}}">
-                                    <span class="onoffswitch-inner"></span>
-                                    <span class="onoffswitch-switch"></span>
-                                </label>
-                            </div>
-                        </div>
-                    </td>
-                    <td>
-                        <a data-href="{{route('admins.review_delete',['id'=>$review->id])}}" class="btn btn-danger btn-sm delete_records" href="javascript:void(0)"><i class="fa fa-times"></i>&nbsp;Delete</a>
-                    </td>
-                </tr>
-                @endforeach
-            </tbody>
+ 
+            <div class="table-responsive" style="max-height:100vh;">
+				<table class="table table-striped table-bordered table-hover dataTables-example" >
+				<thead>
+				<tr>
+					<th>#</th>
+					<th>Product Name</th>
+					<th>Customer Name</th>
+					<th>Review</th>
+					<th>Image</th>
+					<th>Rating</th>
+					<th>Customer Email</th>
+					<th>Status</th>
+					<th>Action</th>
+				</tr>
+				</thead>
+				<tbody>
+					@foreach($reviews as $review)
+					<tr>
+						<?php 
+							$products = product::where(['id'=>$review->pid])->get();
+						?>
+						
+						@foreach($products as $product)
+						<td>{{$review->id}}</td>
+						<td>{{$product->product_name}}</td>
+						@endforeach
+						
+						<td>{{$review->name}}</td>
+						<td style="white-space: normal; word-wrap: break-word; max-width: 300px;">{{$review->review}}</td>
+						<td>
+							@if(!empty($review->image))
+								<?php 
+									// Remove 'public/' prefix if exists
+									$imagePath = $review->image;
+									// Generate full URL using url() helper
+									$imageUrl = url($imagePath);
+								?>
+								<img src="{{ $imageUrl }}" alt="Review Image" style="max-width: 100px; max-height: 100px; border-radius: 4px; cursor: pointer;" onclick="window.open('{{ $imageUrl }}', '_blank')" title="Click to view full size">
+							@else
+								<span class="text-muted">No Image</span>
+							@endif
+						</td>
+						<td>{{$review->rate}}</td>
+						<td>{{$review->email}}</td>
+						<td>
+							<div class="switch">
+								<div class="onoffswitch">
+									<input type="checkbox" name="product_status" data-id="{{$review->id}}" <?php echo $review->status==1 ? 'checked' : null; ?> class="onoffswitch-checkbox toggle-event" id="example-{{$review->id}}">
+									<label class="onoffswitch-label" for="example-{{$review->id}}">
+										<span class="onoffswitch-inner"></span>
+										<span class="onoffswitch-switch"></span>
+									</label>
+								</div>
+							</div>
+						</td>
+						<td>
+							<a data-href="{{route('admins.review_delete',['id'=>$review->id])}}" class="btn btn-danger btn-sm delete_records" href="javascript:void(0)"><i class="fa fa-times"></i>&nbsp;Delete</a>
+						</td>
+					</tr>
+					@endforeach
+				</tbody>
             </table>
                 </div>
   

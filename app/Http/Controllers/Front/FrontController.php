@@ -58,7 +58,7 @@ public function view($view, $data = array())
     }
     $ctheme = 'theme'.$them_num;
     $layout = 'theme'.$them_num.'.layout';
-    $assets = env('APP_URL').'public/theme'.$them_num.'/';
+    $assets = env('IMG_URL').'public/theme'.$them_num.'/';
     $data['layout'] = $layout;
     $data['assets_url'] = $assets;
 
@@ -1296,6 +1296,7 @@ return redirect()->back()->with([
     }
         public function product_detail($slug)
 {
+    
     \Log::info('Product Detail Called', ['slug' => $slug]);
     $allcatagories = Category::where(['status'=>1])->get();
     $Slider=Slider::all();
@@ -1547,136 +1548,104 @@ return redirect()->back()->with([
         Session::put('title','Shop');
         $page = "shop";
         $perPage = env('PRODUCTS_PER_PAGE', 12); // Default to 12, configurable via env
+        $allproducts =Product::select('products.*')->where('status','1')->orderBy('view','DESC')->get();
+        $last =  count($allproducts) / $perPage;
         $products =Product::select('products.*')->where('status','1')->orderBy('view','DESC')->paginate($perPage);
-        return $this->view('list',array('page'=>$page,'products'=>$products,'title'=> 'Shop'));
+        return $this->view('list',array('last'=>$last,'page'=>$page,'products'=>$products,'title'=> 'Shop'));
     }
     
     public function loadMoreProducts(Request $request)
-    {
-        $page = $request->get('page', 1);
-        $perPage = env('PRODUCTS_PER_PAGE', 12); // Default to 12, configurable via env
-        $theme = $request->get('theme', 'theme2'); // Default to theme2
-        $categoryId = $request->get('category_id', null);
-        $brandId = $request->get('brand_id', null);
-        $searchQuery = $request->get('search_query', null);
-        $tagSlug = $request->get('tag_slug', null);
-        
-        // Extract theme number from theme string (e.g., 'theme2' -> 2, 'theme1' -> 1)
-        $them_num = 2; // default
-        if (preg_match('/theme(\d+)/', $theme, $matches)) {
-            $them_num = (int)$matches[1];
-        }
-        
-        $query = Product::select('products.*')->where('status','1');
-        
-        // If category_id is provided, filter by category
-        if ($categoryId) {
-            $query->where('category_id', $categoryId);
-        }
-        
-        // If brand_id is provided, filter by brand
-        if ($brandId) {
-            $query->where('brand', $brandId);
-        }
-        
-        // If tag_slug is provided, filter by tags
-        if ($tagSlug) {
-            $tagSlugFormatted = $tagSlug;
-            $tempQuery = clone $query;
-            $tempQuery->where('tags', 'like', '%' . $tagSlugFormatted . '%');
-            
-            // If no results found, try with space-separated version
-            if ($tempQuery->count() == 0) {
-                $tagSlugFormatted = preg_replace("/-/", " ", $tagSlug);
-            }
-            $query->where('tags', 'like', '%' . $tagSlugFormatted . '%');
-        }
-        
-        // If search_query is provided, check for category match first
-        if ($searchQuery && !$categoryId) {
-            // First, check if there's a category matching the search
-            $matchedCategory = Category::where('status', 1)
-                ->where(function($q) use ($searchQuery) {
-                    $q->where('name', 'like', '%'.$searchQuery.'%')
-                      ->orWhere('slug', 'like', '%'.$searchQuery.'%')
-                      ->orWhere('keywords', 'like', '%'.$searchQuery.'%');
-                })
-                ->first();
-            
-            // If category found, filter by category instead of search
-            if ($matchedCategory) {
-                $query->where('category_id', $matchedCategory->id);
-            } else {
-                // If no category found, do normal product search
-            $query->where(function($q) use ($searchQuery) {
-                $q->where('product_name', 'like', '%'.$searchQuery.'%')
-                  ->orWhere('product_details', 'like', '%'.$searchQuery.'%')
-                  ->orWhere('short_discriiption', 'like', '%'.$searchQuery.'%')
-                  ->orWhere('tags', 'like', '%'.$searchQuery.'%')
-                  ->orWhere('product_code', 'like', '%'.$searchQuery.'%')
-                  ->orWhere('sku', 'like', '%'.$searchQuery.'%')
-                  ->orWhereHas('brand', function($brandQuery) use ($searchQuery) {
-                      $brandQuery->where('name', 'like', '%'.$searchQuery.'%')
-                                ->orWhere('keywords', 'like', '%'.$searchQuery.'%');
-                  })
-                  ->orWhereHas('category', function($catQuery) use ($searchQuery) {
-                      $catQuery->where('name', 'like', '%'.$searchQuery.'%')
-                               ->orWhere('keywords', 'like', '%'.$searchQuery.'%')
-                               ->orWhere('description', 'like', '%'.$searchQuery.'%');
-                  });
-                });
-            }
-        } elseif ($searchQuery && $categoryId) {
-            // If both search_query and category_id provided, do normal search within category
-            $query->where(function($q) use ($searchQuery) {
-                $q->where('product_name', 'like', '%'.$searchQuery.'%')
-                  ->orWhere('product_details', 'like', '%'.$searchQuery.'%')
-                  ->orWhere('short_discriiption', 'like', '%'.$searchQuery.'%')
-                  ->orWhere('tags', 'like', '%'.$searchQuery.'%')
-                  ->orWhere('product_code', 'like', '%'.$searchQuery.'%')
-                  ->orWhere('sku', 'like', '%'.$searchQuery.'%');
-            });
-        }
-        
-        $products = $query->orderBy('view','DESC')
-            ->paginate($perPage, ['*'], 'page', $page);
-            
-        // Generate HTML for products
-        $html = '';
-        foreach ($products as $product) {
-            // Determine which product box template to use based on theme
-            $template = 'theme1.product_box'; // Default
-            if ($theme === 'theme2') {
-                $template = 'theme2.product_box_new';
-            } elseif ($theme === 'front') {
-                $template = 'includes.parts.product_box';
-            }
-            
-            // Use IMG_URL if available, otherwise use APP_URL
-            $baseUrl = env('IMG_URL', env('APP_URL'));
-            $assets_url = rtrim($baseUrl, '/') . '/public/theme'.$them_num.'/';
-            
-            $html .= view($template, ['v' => $product, 'k' => $product->id,'assets_url'=>$assets_url])->render();
-        }
-        
-        // Return JSON response for AJAX requests or if Accept header includes application/json
-        if ($request->ajax() || $request->wantsJson() || $request->expectsJson()) {
-            return response()->json([
-                'html' => $html,
-                'hasMore' => $products->hasMorePages(),
-                'currentPage' => $products->currentPage(),
-                'lastPage' => $products->lastPage()
-            ]);
-        }
-        
-        // For direct browser access, return JSON anyway (for testing/debugging)
-        return response()->json([
-            'html' => $html,
-            'hasMore' => $products->hasMorePages(),
-            'currentPage' => $products->currentPage(),
-            'lastPage' => $products->lastPage()
-        ]);
+{
+    $page = (int) $request->get('page', 1);
+    $page = $page; // load more click par next page
+    $perPage = env('PRODUCTS_PER_PAGE', 12);
+
+    $theme = $request->get('theme', 'theme2');
+    $categoryId = $request->get('category_id');
+    $brandId = $request->get('brand_id');
+    $searchQuery = $request->get('search_query');
+    $tagSlug = $request->get('tag_slug');
+
+    // theme number
+    $themeNum = 2;
+    if (preg_match('/theme(\d+)/', $theme, $matches)) {
+        $themeNum = (int) $matches[1];
     }
+
+    /** ---------------- BASE QUERY ---------------- */
+    $query = Product::select('products.*')
+        ->where('status', 1);
+
+    if ($categoryId) {
+        $query->where('category_id', $categoryId);
+    }
+
+    if ($brandId) {
+        $query->where('brand', $brandId);
+    }
+
+    if ($tagSlug) {
+        $tag = str_replace('-', ' ', $tagSlug);
+        $query->where('tags', 'like', '%' . $tag . '%');
+    }
+
+    if ($searchQuery) {
+        $query->where(function ($q) use ($searchQuery) {
+            $q->where('product_name', 'like', "%$searchQuery%")
+              ->orWhere('product_details', 'like', "%$searchQuery%")
+              ->orWhere('short_discriiption', 'like', "%$searchQuery%")
+              ->orWhere('tags', 'like', "%$searchQuery%")
+              ->orWhere('product_code', 'like', "%$searchQuery%")
+              ->orWhere('sku', 'like', "%$searchQuery%");
+        });
+    }
+
+    /** ---------------- COUNT (NO LIMIT) ---------------- */
+    $totalRecords = (clone $query)->count();
+    $totalPages   = (int) ceil($totalRecords / $perPage);
+
+    /** ---------------- OFFSET + LIMIT ---------------- */
+    $offset = ($page - 1) * $perPage;
+
+    $products = $query->orderBy('view', 'DESC')
+        ->offset($offset)
+        ->limit($perPage)
+        ->get();
+
+    /** ---------------- hasMore ---------------- */
+    $hasMore = $page < $totalPages;
+
+    /** ---------------- HTML BUILD ---------------- */
+    $html = '';
+    foreach ($products as $product) {
+
+        $template = 'theme1.product_box';
+        if ($theme === 'theme2') {
+            $template = 'theme2.product_box_new';
+        } elseif ($theme === 'front') {
+            $template = 'includes.parts.product_box';
+        }
+
+        $baseUrl = env('IMG_URL', env('APP_URL'));
+        $assets_url = rtrim($baseUrl, '/') . '/public/theme' . $themeNum . '/';
+
+        $html .= view($template, [
+            'v' => $product,
+            'k' => $product->id,
+            'assets_url' => $assets_url
+        ])->render();
+    }
+
+    /** ---------------- RESPONSE ---------------- */
+    return response()->json([
+        'html'          => $html,
+        'hasMore'       => $hasMore,
+        'currentPage'   => $page,
+        'lastPage'      => $totalPages,
+        'totalRecords'  => $totalRecords
+    ]);
+}
+
     
     public function user_register(Request $request)
     {
@@ -1721,12 +1690,14 @@ return redirect()->back()->with([
             
             $category = 1;
             $perPage = env('PRODUCTS_PER_PAGE', 12); // Default to 12, configurable via env
+            $allproducts =Product::where('status',1)->where(['subcategory_id'=>$cateid , 'status'=>1])->get();
             $products=Product::where('status',1)->where(['subcategory_id'=>$cateid , 'status'=>1])->paginate($perPage);
+            $last =  count($allproducts) / $perPage;
             $seo = array();
             
             $meta_file = 'meta.categoy';
             $page = 'Test';
-            return $this->view('list',array('page'=>$page,'products'=>$products,'title'=> 'Shop','meta_file'=>$meta_file,'meta'=>$meta,'category_id'=>$category_id,'best'=>$best,'seo'=>$seo,'category'=>$category,'sub_cat'=>$sub_cat,'pcategory'=>$pcategory));
+            return $this->view('list',array('last'=>$last,'page'=>$page,'products'=>$products,'title'=> 'Shop','meta_file'=>$meta_file,'meta'=>$meta,'category_id'=>$category_id,'best'=>$best,'seo'=>$seo,'category'=>$category,'sub_cat'=>$sub_cat,'pcategory'=>$pcategory));
         }
         else
         {
@@ -1780,11 +1751,17 @@ return redirect()->back()->with([
                 $category = 1;
                 $perPage = env('PRODUCTS_PER_PAGE', 12); // Default to 12, configurable via env
                 $products=Product::where('status',1)->where(['subcategory_id'=>$cateid , 'status'=>1])->paginate($perPage);
+                
+                $products=Product::where('status',1)->where(['subcategory_id'=>$cateid , 'status'=>1])->get();
+            $last =  count($allproducts) / $perPage;
+                
+                
+
                 $seo = CategoriesToMeta::where('scid','=',$cateid)->first();
                 
                 $meta_file = 'meta.categoy';
                 $page = 'Test';
-                return $this->view('list',array('page'=>$page,'products'=>$products,'title'=> 'Shop','meta_file'=>$meta_file,'meta'=>$meta,'category_id'=>$subcategory_id,'best'=>$best,'seo'=>$seo,'category'=>$category,'sub_cat'=>$sub_cat,'pcategory'=>$pcategory));
+                return $this->view('list',array('last'=>$last,'page'=>$page,'products'=>$products,'title'=> 'Shop','meta_file'=>$meta_file,'meta'=>$meta,'category_id'=>$subcategory_id,'best'=>$best,'seo'=>$seo,'category'=>$category,'sub_cat'=>$sub_cat,'pcategory'=>$pcategory));
             } else {
                 // Neither category nor subcategory found
                 return abort(404);
@@ -1819,12 +1796,17 @@ return redirect()->back()->with([
         }
         $category = 1;
         $perPage = env('PRODUCTS_PER_PAGE', 12); // Default to 12, configurable via env
-        $products=Product::where('status',1)->where(['category_id'=>$cateid , 'status'=>1])->paginate($perPage);
+        $products=Product::where('status',1)->where(['category_id'=>$cateid , 'status'=>1])->orderBy('view', 'DESC')->limit($perPage)->get();
+        $totalRecords = Product::where('status', 1)
+    ->where(['category_id'=>$cateid , 'status'=>1])
+    ->count();
+        $last = $totalRecords / $perPage;
+
         $seo = CategoriesToMeta::where('cid','=',$cateid)->first();
        
         $meta_file = 'meta.categoy';
         $page = 'Test';
-        return $this->view('list',array('page'=>$page,'products'=>$products,'title'=> 'Shop','meta_file'=>$meta_file,'meta'=>$meta,'category_id'=>$category_id,'best'=>$best,'seo'=>$seo,'category'=>$category,'sub_cat'=>$sub_cat));
+        return $this->view('list',array('last'=>$last,'page'=>$page,'products'=>$products,'title'=> 'Shop','meta_file'=>$meta_file,'meta'=>$meta,'category_id'=>$category_id,'best'=>$best,'seo'=>$seo,'category'=>$category,'sub_cat'=>$sub_cat));
 
        
     }
@@ -2024,7 +2006,8 @@ return redirect()->back()->with([
     //         return view('front.checkout',compact('setting'));
     // }
 private function sendEmailWithSendGrid($toEmail, $toName, $subject, $content) {
-    $apiKey = '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'; // Yahan apna SendGrid API Key daalain
+    // Read SendGrid API key from environment or configuration instead of hardcoding
+    $apiKey = env('SENDGRID_API_KEY', 'SENDGRID_API_KEY_PLACEHOLDER'); // Yahan apna SendGrid API Key env mein rakhein
 
     $emailData = [
         'personalizations' => [
@@ -3150,8 +3133,15 @@ private function sendEmailWithSendGrid($toEmail, $toName, $subject, $content) {
             ->where('brand', $brand_id->id)
             ->orderBy('view','DESC')
             ->paginate($perPage);
+        $allproducts = Product::select('products.*')
+            ->where('status','1')
+            ->where('brand', $brand_id->id)
+            ->orderBy('view','DESC')
+            ->get();
+            $last =  count($allproducts) / $perPage;
             
         return $this->view('list',array(
+            'last'=>$last,
             'page'=>$page,
             'products'=>$products,
             'title'=> $brand_id->name,
@@ -3208,12 +3198,15 @@ private function sendEmailWithSendGrid($toEmail, $toName, $subject, $content) {
             $nslug = preg_replace("/-/", " ", $slug);
             $query = Product::where('status', 1)->where('tags', 'like', '%' . $nslug . '%');
         }
+        $q = $query;
         
         $rproducts = $query->orderBy('view','DESC')->paginate($perPage);
+        $allrproducts = $q->orderBy('view','DESC')->get();
+        $last = count($allrproducts) / $perPage;
         $product = $rproducts; 
 
         Session::put('title', $nslug);
-        return $this->view('list',array('products'=>$rproducts,'title'=>$nslug,'tags'=> $tags,'slug'=> $slug,'meta_file'=> $meta_file,'product'=>$product,'pagination'=>0));
+        return $this->view('list',array('last'=>$last,'products'=>$rproducts,'title'=>$nslug,'tags'=> $tags,'slug'=> $slug,'meta_file'=> $meta_file,'product'=>$product,'pagination'=>0));
     }
 
     public function search_detail(Request $slug)
@@ -3252,10 +3245,17 @@ private function sendEmailWithSendGrid($toEmail, $toName, $subject, $content) {
                 ->with(['brand', 'category'])
                 ->orderBy('view', 'DESC')
                 ->paginate($perPage);
+                $allrproducts = Product::where('status', 1)
+                ->where('category_id', $matchedCategory->id)
+                ->with(['brand', 'category'])
+                ->orderBy('view', 'DESC')
+                ->get();
+                $last = count($allrproducts) / $perPage;
             
             Session::put('title', $matchedCategory->name);
             
             return $this->view('list', [
+                'last' => $last,
                 'products' => $rproducts,
                 'title' => $matchedCategory->name,
                 'page' => 'category',
@@ -3286,12 +3286,36 @@ private function sendEmailWithSendGrid($toEmail, $toName, $subject, $content) {
             ->with(['brand', 'category'])
             ->orderBy('product_name', 'asc')
             ->paginate($perPage);
+        // If no category found, do normal product search
+        $allrproducts = Product::where('status', 1)
+            ->where(function($query) use ($search_query) {
+                $query->where('product_name', 'like', '%'.$search_query.'%')
+                      ->orWhere('product_details', 'like', '%'.$search_query.'%')
+                      ->orWhere('short_discriiption', 'like', '%'.$search_query.'%')
+                      ->orWhere('tags', 'like', '%'.$search_query.'%')
+                      ->orWhere('product_code', 'like', '%'.$search_query.'%')
+                      ->orWhere('sku', 'like', '%'.$search_query.'%')
+                      ->orWhereHas('brand', function($q) use ($search_query) {
+                          $q->where('name', 'like', '%'.$search_query.'%')
+                            ->orWhere('keywords', 'like', '%'.$search_query.'%');
+                      })
+                      ->orWhereHas('category', function($q) use ($search_query) {
+                          $q->where('name', 'like', '%'.$search_query.'%')
+                            ->orWhere('keywords', 'like', '%'.$search_query.'%')
+                            ->orWhere('description', 'like', '%'.$search_query.'%');
+                      });
+            })
+            ->with(['brand', 'category'])
+            ->orderBy('product_name', 'asc')
+            ->get();
+            $last = count($allrproducts) / $perPage;
         
         // Set page title for SEO
         Session::put('title', 'Search Results for "' . $search_query . '"');
         
         return $this->view('list', [
             'products' => $rproducts,
+            'last'=>$last,
             'title' => 'Search Results for "' . $search_query . '"',
             'page' => 'search',
             'search_query' => $search_query
@@ -3325,28 +3349,28 @@ private function sendEmailWithSendGrid($toEmail, $toName, $subject, $content) {
                 ->get();
         } else {
             // If no category found, do normal product search
-        $products = Product::where('status', 1)
-            ->where(function($query) use ($search_query) {
-                $query->where('product_name', 'like', '%'.$search_query.'%')
-                      ->orWhere('product_details', 'like', '%'.$search_query.'%')
-                      ->orWhere('short_discriiption', 'like', '%'.$search_query.'%')
-                      ->orWhere('tags', 'like', '%'.$search_query.'%')
-                      ->orWhere('product_code', 'like', '%'.$search_query.'%')
-                      ->orWhere('sku', 'like', '%'.$search_query.'%')
-                      ->orWhereHas('brand', function($q) use ($search_query) {
-                          $q->where('name', 'like', '%'.$search_query.'%')
-                            ->orWhere('keywords', 'like', '%'.$search_query.'%');
-                      })
-                      ->orWhereHas('category', function($q) use ($search_query) {
-                          $q->where('name', 'like', '%'.$search_query.'%')
-                            ->orWhere('keywords', 'like', '%'.$search_query.'%')
-                            ->orWhere('description', 'like', '%'.$search_query.'%');
-                      });
-            })
-            ->with(['brand', 'category'])
-            ->orderBy('product_name', 'asc')
-            ->limit(10)
-            ->get();
+            $products = Product::where('status', 1)
+                ->where(function($query) use ($search_query) {
+                    $query->where('product_name', 'like', '%'.$search_query.'%')
+                          ->orWhere('product_details', 'like', '%'.$search_query.'%')
+                          ->orWhere('short_discriiption', 'like', '%'.$search_query.'%')
+                          ->orWhere('tags', 'like', '%'.$search_query.'%')
+                          ->orWhere('product_code', 'like', '%'.$search_query.'%')
+                          ->orWhere('sku', 'like', '%'.$search_query.'%')
+                          ->orWhereHas('brand', function($q) use ($search_query) {
+                              $q->where('name', 'like', '%'.$search_query.'%')
+                                ->orWhere('keywords', 'like', '%'.$search_query.'%');
+                          })
+                          ->orWhereHas('category', function($q) use ($search_query) {
+                              $q->where('name', 'like', '%'.$search_query.'%')
+                                ->orWhere('keywords', 'like', '%'.$search_query.'%')
+                                ->orWhere('description', 'like', '%'.$search_query.'%');
+                          });
+                })
+                ->with(['brand', 'category'])
+                ->orderBy('product_name', 'asc')
+                ->limit(10)
+                ->get();
         }
         
         $results = [];

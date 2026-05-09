@@ -1,3 +1,4 @@
+
 @extends('theme2.layout')
 
 @section('title', 'Search Results')

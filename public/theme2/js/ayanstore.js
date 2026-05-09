@@ -1,78 +1,199 @@
 // ---- image slider ---- 
-(() => {
+document.addEventListener('DOMContentLoaded', function() {
     const track = document.getElementById('track');
-    const slider = document.getElementById('slider');
-    if (track && slider) {   // ✅ only run if both exist
-        const slides = Array.from(track.children);
-        let index = 0;
-        let isDown = false;
-        let startX = 0;
-        let currentTranslate = 0;
-        let prevTranslate = 0;
-        let pointerId = null;
-
-        const width = () => slider.clientWidth;
-
-        function setTranslate(x, animate = true) {
-            track.style.transition = animate ? 'transform 0.3s ease' : 'none';
-            track.style.transform = `translateX(${x}px)`;
-        }
-
-        function pointerDown(e) {
-            if (e.pointerType === 'mouse' && e.button !== 0) return;
-            isDown = true;
-            pointerId = e.pointerId;
-            track.setPointerCapture(pointerId);
-            track.classList.add('grabbing');
-            startX = e.clientX;
-            prevTranslate = -index * width();
-            currentTranslate = prevTranslate;
-            setTranslate(currentTranslate, false);
-        }
-
-        function pointerMove(e) {
-            if (!isDown || e.pointerId !== pointerId) return;
-            const dx = e.clientX - startX;
-            currentTranslate = prevTranslate + dx;
-            setTranslate(currentTranslate, false);
-        }
-
-        function pointerUp(e) {
-            if (!isDown || e.pointerId !== pointerId) return;
-            isDown = false;
-            track.releasePointerCapture(pointerId);
-            track.classList.remove('grabbing');
-
-            const movedBy = currentTranslate - prevTranslate;
-            const threshold = width() * 0.20;
-
-            if (movedBy < -threshold && index < slides.length - 1) index++;
-            else if (movedBy > threshold && index > 0) index--;
-
-            prevTranslate = -index * width();
-            setTranslate(prevTranslate, true);
-        }
-
-        track.addEventListener('pointerdown', pointerDown);
-        track.addEventListener('pointermove', pointerMove);
-        track.addEventListener('pointerup', pointerUp);
-        track.addEventListener('pointercancel', pointerUp);
-        track.addEventListener('lostpointercapture', pointerUp);
-
-        window.addEventListener('resize', () => {
-            prevTranslate = -index * width();
-            setTranslate(prevTranslate, true);
-        });
-
-        slides.forEach(s => {
-            const img = s.querySelector('img');
-            if (img) img.addEventListener('dragstart', e => e.preventDefault());
-        });
-
-        prevTranslate = -index * width();
-        setTranslate(prevTranslate, true);
+    if (!track || !track.children || track.children.length === 0) {
+        return; // Exit if track element doesn't exist or has no children
     }
-})();
+    const slides = Array.from(track.children);
+    const totalSlides = slides.length;
+    if (totalSlides === 0) return; // Exit if no slides
+    
+    let index = 0;
+    const intervalTime = 5000;
+    let slideInterval;
+
+    // Auto-slide function
+    function moveToSlide(i) {
+        if (track) {
+        track.style.transform = `translateX(-${i * 100}%)`;
+        }
+    }
+
+    function nextSlide() {
+        index++;
+        if (index >= totalSlides) index = 0;
+        moveToSlide(index);
+    }
+
+    function startAutoSlide() {
+        slideInterval = setInterval(nextSlide, intervalTime);
+    }
+
+    function stopAutoSlide() {
+        clearInterval(slideInterval);
+    }
+
+    if (!track) return; // Double check before proceeding with event listeners
+
+    startAutoSlide();
+
+    // Pause on hover
+    if (track) {
+    track.addEventListener('mouseenter', stopAutoSlide);
+    track.addEventListener('mouseleave', startAutoSlide);
+
+    // --- Drag functionality ---
+    let isDown = false;
+    let startX;
+    let currentTranslate = 0;
+    let prevTranslate = 0;
+
+    track.addEventListener('mousedown', (e) => {
+            if (!track) return;
+        isDown = true;
+        startX = e.pageX;
+        track.classList.add('grabbing');
+        stopAutoSlide();
+    });
+
+    track.addEventListener('mousemove', (e) => {
+            if (!isDown || !track) return;
+        const deltaX = e.pageX - startX;
+        track.style.transform = `translateX(${prevTranslate + deltaX}px)`;
+    });
+
+    track.addEventListener('mouseup', (e) => {
+            if (!isDown || !track) return;
+        isDown = false;
+        track.classList.remove('grabbing');
+        const deltaX = e.pageX - startX;
+        // if moved enough to next slide
+        if (deltaX < -50 && index < totalSlides - 1) index++;
+        if (deltaX > 50 && index > 0) index--;
+        moveToSlide(index);
+        prevTranslate = -index * track.offsetWidth;
+        startAutoSlide();
+    });
+
+    track.addEventListener('mouseleave', () => {
+            if (!isDown || !track) return;
+        isDown = false;
+        track.classList.remove('grabbing');
+        moveToSlide(index);
+        prevTranslate = -index * track.offsetWidth;
+        startAutoSlide();
+    });
+
+    // Touch events for mobile
+    track.addEventListener('touchstart', (e) => {
+            if (!track) return;
+        isDown = true;
+        startX = e.touches[0].clientX;
+        stopAutoSlide();
+    });
+
+    track.addEventListener('touchmove', (e) => {
+            if (!isDown || !track) return;
+        const deltaX = e.touches[0].clientX - startX;
+        track.style.transform = `translateX(${prevTranslate + deltaX}px)`;
+    });
+
+    track.addEventListener('touchend', (e) => {
+            if (!isDown || !track) return;
+        isDown = false;
+        const deltaX = e.changedTouches[0].clientX - startX;
+        if (deltaX < -50 && index < totalSlides - 1) index++;
+        if (deltaX > 50 && index > 0) index--;
+        moveToSlide(index);
+        prevTranslate = -index * track.offsetWidth;
+        startAutoSlide();
+    });
+    }
+});
+
+// sticky-header // 
+
+
+/*document.addEventListener("DOMContentLoaded", function () {
+
+    const navBar = document.querySelector('.nav');
+    const stickyHeader = document.getElementById('sticky-header');
+
+    
+    if (!navBar || !stickyHeader) return;
+
+    stickyHeader.style.display = 'block';
+    stickyHeader.style.visibility = 'visible';
+    stickyHeader.style.opacity = '1';
+    stickyHeader.style.position = 'relative';
+    stickyHeader.style.top = 'auto';
+    stickyHeader.style.left = 'auto';
+    stickyHeader.style.right = 'auto';
+    stickyHeader.style.transform = 'none';
+    
+    stickyHeader.classList.remove("sticky");
+    
+    let lastScroll = window.pageYOffset || 0;
+
+    window.addEventListener('scroll', function () {
+        let currentScroll = window.pageYOffset || 0;
+
+        if (currentScroll > lastScroll && currentScroll > 50) {
+            if (navBar) {
+                navBar.style.transform = "translateY(-100%)";
+            }
+            stickyHeader.classList.add("sticky");
+        } 
+
+        else {
+            if (navBar) {
+                navBar.style.transform = "translateY(0)";
+            }
+            
+
+            if (currentScroll <= 50) {
+                stickyHeader.classList.remove("sticky");
+            } else {
+
+                stickyHeader.classList.add("sticky");
+            }
+        }
+
+        lastScroll = currentScroll;
+    });
+});*/
+
+// sticky mobile header //
+
+
+document.addEventListener("DOMContentLoaded", function () {
+    let lastScroll = 0;
+    const delta = 5;
+    const navMob = document.getElementById('hidden-nav');
+    const stickyHeader = document.getElementById('sticky-header-mob');
+    const navHeight = navMob.offsetHeight;
+
+    // Initially sticky header is below nav
+    stickyHeader.style.top = navHeight + 'px';
+
+    window.addEventListener('scroll', function () {
+        const currentScroll = window.pageYOffset;
+
+        if (Math.abs(currentScroll - lastScroll) <= delta) return;
+
+        if (currentScroll > lastScroll) {
+            // Scrolling down → hide nav, sticky header moves to top
+            navMob.classList.add('hidden-nav');
+            stickyHeader.style.top = '0';
+        } else {
+            // Scrolling up → show nav, sticky header below nav
+            navMob.classList.remove('hidden-nav');
+            stickyHeader.style.top = navHeight + 'px';
+        }
+
+        lastScroll = currentScroll <= 0 ? 0 : currentScroll;
+    });
+});
 
 
 // ---- cart open ----   
@@ -85,6 +206,8 @@ if (openCartBtns.length && cartSidebar && cartOverlay) {
     openCartBtns.forEach(btn => {
         btn.addEventListener('click', (e) => {
             e.preventDefault();
+            // Update cart sidebar before opening
+            updateCartSidebar();
             cartSidebar.classList.add('active');
             cartOverlay.classList.add('active');
         });
@@ -280,19 +403,35 @@ document.querySelectorAll(".slider-wrapper").forEach(wrapper => {
         });
 
 // ---- AJAX Cart Functions ----
-function addToCart(productId, quantity = 1) {
+function addToCart(productId, quantity = 1, buyNow = 0, buttonElement = null) {
+    // Get button element - from parameter, event, or by ID
+    let addToCartBtn = buttonElement;
+    if (!addToCartBtn && typeof event !== 'undefined' && event && event.target) {
+        addToCartBtn = event.target;
+    }
+    if (!addToCartBtn) {
+        addToCartBtn = document.getElementById('add-to-cart-btn') || document.querySelector('.add-to-cart-btn');
+    }
+    
     // Show loading state
-    const addToCartBtn = event.target;
-    const originalText = addToCartBtn.textContent;
+    const originalText = addToCartBtn ? addToCartBtn.textContent : '';
+    if (addToCartBtn) {
     addToCartBtn.textContent = 'Adding...';
     addToCartBtn.disabled = true;
+    }
+
+    // Get base URL
+    const baseUrl = window.location.origin;
+    const pathname = window.location.pathname;
+    const basePath = pathname.includes('/public/') ? '/public' : '';
 
     // Make AJAX request
-    fetch(window.location.origin + '/cart/add', {
+    fetch(baseUrl + basePath + '/cart/add', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
+            'Accept': 'application/json'
         },
         body: JSON.stringify({
             id: productId,
@@ -301,15 +440,27 @@ function addToCart(productId, quantity = 1) {
     })
     .then(response => response.json())
     .then(data => {
-        if (data.msg_type === 'success') {
+        if (data.msg_type === 'success' || data.success) {
             // Update cart count in header
-            updateCartCount(data.qty);
+            if (typeof updateCartCount === 'function') {
+                updateCartCount(data.qty || 0);
+            }
             
             // Update cart sidebar
+            if (typeof updateCartSidebar === 'function') {
             updateCartSidebar();
+            }
             
             // Show success message
-            showNotification(data.msg, 'success');
+            if (typeof showNotification === 'function') {
+                showNotification(data.msg || 'Product added to cart successfully!', 'success');
+            }
+            
+            // If buy now, redirect to checkout
+            if (buyNow === 1) {
+                window.location.href = baseUrl + basePath + '/checkout';
+                return;
+            }
             
             // Open cart sidebar
             const cartSidebar = document.getElementById('cartSidebar');
@@ -319,73 +470,146 @@ function addToCart(productId, quantity = 1) {
                 cartOverlay.classList.add('active');
             }
         } else {
+            if (typeof showNotification === 'function') {
             showNotification(data.msg || 'Error adding to cart', 'error');
+            } else {
+                alert(data.msg || 'Error adding to cart');
+            }
         }
     })
     .catch(error => {
         console.error('Error:', error);
+        if (typeof showNotification === 'function') {
         showNotification('Error adding to cart', 'error');
+        } else {
+            alert('Error adding to cart');
+        }
     })
     .finally(() => {
         // Reset button state
+        if (addToCartBtn) {
         addToCartBtn.textContent = originalText;
         addToCartBtn.disabled = false;
+        }
     });
 }
 
 function updateCartCount(qty) {
     // Update cart count in header
     const cartCountElements = document.querySelectorAll('.cart-count, .toolbar-count');
+    if (cartCountElements.length > 0) {
     cartCountElements.forEach(element => {
         element.textContent = qty || 0;
-    });
+            // Also update innerHTML in case textContent doesn't work
+            element.innerHTML = qty || 0;
+        });
+    } else {
+        // If elements not found, try again after a short delay
+        setTimeout(() => {
+            const retryElements = document.querySelectorAll('.cart-count, .toolbar-count');
+            retryElements.forEach(element => {
+                element.textContent = qty || 0;
+                element.innerHTML = qty || 0;
+            });
+        }, 100);
+    }
 }
 
 function updateCartSidebar() {
     // Fetch cart data and update sidebar
-    fetch(window.location.origin + '/cart/data', {
+    const baseUrl = window.location.origin;
+    const pathname = window.location.pathname;
+    // Get base path (remove /public if exists)
+    const basePath = pathname.includes('/public/') ? '/public' : '';
+    
+    fetch(baseUrl + basePath + '/cart/data', {
         method: 'GET',
         headers: {
             'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-        }
+            'X-Requested-With': 'XMLHttpRequest',
+            'Accept': 'application/json'
+        },
+        credentials: 'same-origin'
     })
-    .then(response => response.json())
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+        return response.json();
+    })
     .then(data => {
         const cartContent = document.querySelector('.cart-content');
         if (cartContent) {
             if (data.cart && data.cart.items && data.cart.items.length > 0) {
                 cartContent.innerHTML = generateCartHTML(data.cart);
+                // Update cart count - ensure it's called after DOM update
+                setTimeout(() => {
+                    updateCartCount(data.cart.qty || 0);
+                }, 50);
             } else {
+                const assetsUrl = baseUrl + basePath + '/public/theme2/';
                 cartContent.innerHTML = `
-                    <img src="${window.location.origin}/theme2/img/cart-cut-icon.svg">
+                    <img src="${assetsUrl}img/cart-cut-icon.svg" alt="Empty Cart" width="24" height="24">
                     <p>No Products In The Cart.</p>
-                    <button onclick="window.location.href='${window.location.origin}'"> Return To Shop </button>
+                    <button onclick="window.location.href='${baseUrl}${basePath}'" class="return-shop-btn"> Return To Shop </button>
                 `;
+                // Update cart count to 0
+                setTimeout(() => {
+                    updateCartCount(0);
+                }, 50);
             }
+        }
+        // Always update cart count regardless of cart content
+        if (data.cart) {
+            setTimeout(() => {
+                updateCartCount(data.cart.qty || 0);
+            }, 50);
         }
     })
     .catch(error => {
         console.error('Error fetching cart data:', error);
+        // Show empty cart on error
+        const cartContent = document.querySelector('.cart-content');
+        if (cartContent) {
+            const assetsUrl = baseUrl + basePath + '/theme2/';
+            cartContent.innerHTML = `
+                <img src="${assetsUrl}img/cart-cut-icon.svg" alt="Empty Cart">
+                <p>No Products In The Cart.</p>
+                <button onclick="window.location.href='${baseUrl}${basePath}'" class="return-shop-btn"> Return To Shop </button>
+            `;
+        }
     });
 }
 
 function generateCartHTML(cart) {
+    const baseUrl = window.location.origin;
+    const pathname = window.location.pathname;
+    const basePath = pathname.includes('/public/') ? '/public' : '';
+    const assetsUrl = baseUrl + basePath + '/theme2/';
+    
     let html = '<div class="cart-items">';
     
     cart.items.forEach(item => {
+        let imageUrl = item.image || assetsUrl + 'img/solo.webp';
+        // Fix image URL if it has duplicate public
+        if (imageUrl.includes('/public/public/')) {
+            imageUrl = imageUrl.replace('/public/public/', '/public/');
+        }
+        
+        const itemTotal = parseFloat(item.price) * parseInt(item.qty);
+        
         html += `
             <div class="cart-item" data-product-id="${item.id}">
                 <div class="cart-item-image">
-                    <img src="${item.image || '/theme2/img/solo.webp'}" alt="${item.name}">
+                    <img src="${imageUrl}" alt="${item.name}" onerror="this.src='${assetsUrl}img/solo.webp'">
                 </div>
                 <div class="cart-item-details">
                     <h4>${item.name}</h4>
-                    <p class="cart-item-price">Rs: ${item.price}</p>
+                    <p class="cart-item-price">Rs: ${item.price} x ${item.qty} = Rs: ${itemTotal.toFixed(2)}</p>
                     <div class="cart-item-quantity">
-                        <button onclick="updateQuantity(${item.id}, ${item.qty - 1})">-</button>
-                        <span>${item.qty}</span>
-                        <button onclick="updateQuantity(${item.id}, ${item.qty + 1})">+</button>
+                        <button class="cart-qty-btn" onclick="decrementCartItem(${item.id})">-</button>
+                        <span class="cart-qty-value" id="cart-qty-${item.id}">${item.qty}</span>
+                        <button class="cart-qty-btn" onclick="incrementCartItem(${item.id})">+</button>
                     </div>
                 </div>
                 <div class="cart-item-remove">
@@ -395,32 +619,46 @@ function generateCartHTML(cart) {
         `;
     });
     
+    // Get shipping charges from cart data
+    const shippingCharges = parseFloat(cart.shipping_charges || 0);
+    const grandTotal = parseFloat(cart.amount) + parseFloat(shippingCharges);
+    
     html += `
         </div>
+        <div class="cart-summary">
+            <div class="cart-subtotal">
+                <span>Subtotal:</span>
+                <span class="cart-subtotal-value">Rs: ${parseFloat(cart.amount).toFixed(2)}</span>
+            </div>
+            <div class="cart-shipping">
+                <span>Shipping:</span>
+                <span class="cart-shipping-value">Rs: ${parseFloat(shippingCharges).toFixed(2)}</span>
+        </div>
         <div class="cart-total">
-            <h3>Total: Rs: ${cart.amount}</h3>
+                <h3>Total: Rs: <span class="cart-total-value">${grandTotal.toFixed(2)}</span></h3>
             <p>${cart.qty} item(s) in cart</p>
+            </div>
         </div>
         <div class="cart-actions">
-            <button onclick="window.location.href='${window.location.origin}/checkout'" class="checkout-btn">Checkout</button>
-            <button onclick="window.location.href='${window.location.origin}'" class="continue-shopping-btn">Continue Shopping</button>
+            <button onclick="window.location.href='${baseUrl}${basePath}/checkout'" class="checkout-btn">Checkout</button>
+            <button onclick="window.location.href='${baseUrl}${basePath}'" class="continue-shopping-btn">Continue Shopping</button>
         </div>
     `;
     
     return html;
 }
 
-function updateQuantity(productId, newQuantity) {
-    if (newQuantity < 1) {
-        removeFromCart(productId);
-        return;
-    }
+function incrementCartItem(productId) {
+    const baseUrl = window.location.origin;
+    const pathname = window.location.pathname;
+    const basePath = pathname.includes('/public/') ? '/public' : '';
     
-    fetch(window.location.origin + '/cart/increment', {
+    fetch(baseUrl + basePath + '/cart/increment', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
+            'Accept': 'application/json'
         },
         body: JSON.stringify({
             id: productId
@@ -428,27 +666,78 @@ function updateQuantity(productId, newQuantity) {
     })
     .then(response => response.json())
     .then(data => {
-        updateCartSidebar();
-        updateCartCount(data.qty);
+        if (data.cart) {
+            updateCartSidebar();
+            updateCartCount(data.cart.qty || 0);
+        } else {
+            updateCartSidebar();
+        }
     })
     .catch(error => {
         console.error('Error updating quantity:', error);
+        updateCartSidebar(); // Refresh anyway
+    });
+    }
+    
+function decrementCartItem(productId) {
+    const baseUrl = window.location.origin;
+    const pathname = window.location.pathname;
+    const basePath = pathname.includes('/public/') ? '/public' : '';
+    
+    fetch(baseUrl + basePath + '/cart/decrement', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
+            'Accept': 'application/json'
+        },
+        body: JSON.stringify({
+            id: productId
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.cart) {
+        updateCartSidebar();
+            updateCartCount(data.cart.qty || 0);
+        } else {
+            updateCartSidebar();
+        }
+    })
+    .catch(error => {
+        console.error('Error updating quantity:', error);
+        updateCartSidebar(); // Refresh anyway
     });
 }
 
 function removeFromCart(productId) {
-    fetch(`${window.location.origin}/cart/remove/${productId}`, {
+    const baseUrl = window.location.origin;
+    const pathname = window.location.pathname;
+    const basePath = pathname.includes('/public/') ? '/public' : '';
+    
+    fetch(baseUrl + basePath + '/cart/remove/' + productId, {
         method: 'GET',
         headers: {
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
+            'Accept': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest'
         }
     })
-    .then(response => {
+    .then(response => response.json())
+    .then(data => {
+        if (data.cart) {
         updateCartSidebar();
+            updateCartCount(data.cart.qty || 0);
+        } else {
+            updateCartSidebar();
+            updateCartCount(0);
+        }
         showNotification('Item removed from cart', 'success');
     })
     .catch(error => {
         console.error('Error removing item:', error);
+        updateCartSidebar(); // Refresh anyway
+        updateCartCount(0);
     });
 }
 
@@ -511,11 +800,11 @@ style.textContent = `
         align-items: center;
         padding: 10px;
         border-bottom: 1px solid #eee;
+		margin-bottom:15px;
     }
     .cart-item-image {
-        width: 60px;
-        height: 60px;
-        margin-right: 10px;
+        width: 80px;
+        height: 80px;
     }
     .cart-item-image img {
         width: 100%;
@@ -525,20 +814,27 @@ style.textContent = `
     }
     .cart-item-details {
         flex: 1;
+		padding:0px 10px;
     }
     .cart-item-details h4 {
         margin: 0 0 5px 0;
         font-size: 14px;
+	    font-weight: 500;
+		color: #333;
     }
     .cart-item-price {
-        margin: 0 0 10px 0;
-        font-weight: bold;
-        color: #333;
+        font-weight: 500 !important;
+        color: #333 !important;
+		font-size:14px !important;
+		text-transform:uppercase;
+		padding:0px !important;
+		margin-bottom:5px !important;
     }
     .cart-item-quantity {
         display: flex;
         align-items: center;
         gap: 10px;
+	    justify-content: center;
     }
     .cart-item-quantity button {
         width: 25px;
@@ -547,6 +843,8 @@ style.textContent = `
         background: white;
         cursor: pointer;
         border-radius: 3px;
+		padding:0px ;
+		color:#333;
     }
     .cart-item-remove .remove-btn {
         background: #dc3545;
@@ -556,6 +854,7 @@ style.textContent = `
         height: 25px;
         border-radius: 50%;
         cursor: pointer;
+		padding:0px;
     }
     .cart-total {
         padding: 15px;
@@ -587,6 +886,154 @@ document.head.appendChild(style);
 
 // Initialize cart on page load
 document.addEventListener('DOMContentLoaded', function() {
+    // Update cart sidebar and count on page load
     updateCartSidebar();
+    
+    // Also update cart count from server-side rendered value as fallback
+    const cartCountElement = document.querySelector('.cart-count');
+    if (cartCountElement) {
+        // The count is already rendered from server, but we'll refresh it
+        // after sidebar loads to ensure accuracy
+        setTimeout(() => {
+            updateCartSidebar();
+        }, 100);
+    }
+    
+    // Intercept jQuery AJAX calls to cart/add and update cart count
+    if (typeof $ !== 'undefined') {
+        $(document).ajaxSuccess(function(event, xhr, settings) {
+            // Check if this is a cart/add request
+            if (settings.url && (settings.url.includes('/cart/add') || settings.url.includes('cart/add'))) {
+                try {
+                    const response = JSON.parse(xhr.responseText);
+                    if (response.qty !== undefined) {
+                        // Update cart count
+                        updateCartCount(response.qty);
+                        // Update cart sidebar
+                        updateCartSidebar();
+                    }
+                } catch (e) {
+                    // If response is not JSON, try to update anyway
+                    updateCartSidebar();
+                }
+            }
+        });
+    }
 });
+
+// ---- Mobile Search Modal ----
+// Note: Open/Close functionality is now handled in layout.blade.php unified function
+// This section only handles live search functionality
+const mobileSearchInput = document.getElementById('mobileSearchInput');
+const mobileSearchResults = document.getElementById('mobileSearchResults');
+let searchTimeout = null;
+
+// Live search on keyup
+if (mobileSearchInput) {
+    mobileSearchInput.addEventListener('keyup', function(e) {
+        const query = this.value.trim();
+        
+        // Clear previous timeout
+        if (searchTimeout) {
+            clearTimeout(searchTimeout);
+        }
+        
+        // If query is less than 2 characters, clear results
+        if (query.length < 2) {
+            mobileSearchResults.innerHTML = '';
+            return;
+        }
+        
+        // Debounce search - wait 300ms after user stops typing
+        searchTimeout = setTimeout(() => {
+            performLiveSearch(query);
+        }, 300);
+    });
+    
+    // Clear results when input is empty
+    mobileSearchInput.addEventListener('input', function() {
+        if (this.value.trim().length === 0) {
+            mobileSearchResults.innerHTML = '';
+        }
+    });
+}
+
+function performLiveSearch(query) {
+    if (!query || query.length < 2) {
+        mobileSearchResults.innerHTML = '';
+        return;
+    }
+    
+    // Show loading state with spinner
+    mobileSearchResults.innerHTML = `
+        <div class="search-loading">
+            <div class="search-spinner"></div>
+            <p>Searching...</p>
+        </div>
+    `;
+    
+    // Make AJAX request
+    fetch(`/api/live-search?q=${encodeURIComponent(query)}`, {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        displaySearchResults(data.products);
+    })
+    .catch(error => {
+        console.error('Search error:', error);
+        mobileSearchResults.innerHTML = '<div class="search-error">Error searching products. Please try again.</div>';
+    });
+}
+
+function displaySearchResults(products) {
+    if (!products || products.length === 0) {
+        mobileSearchResults.innerHTML = '<div class="search-no-results">No products found</div>';
+        return;
+    }
+    
+    const baseUrl = window.location.origin;
+    const assetsUrl = baseUrl + '/theme2/';
+    
+    let html = '<ul class="search-results-list">';
+    products.forEach(product => {
+        let imageUrl = product.image || '';
+        if (imageUrl && !imageUrl.startsWith('http')) {
+            imageUrl = baseUrl + '/' + imageUrl;
+        } else if (!imageUrl) {
+            imageUrl = assetsUrl + 'img/solo.webp';
+        }
+        
+        html += `
+            <li class="search-result-item">
+                <a href="${product.url}" onclick="closeMobileSearchModal()">
+                    <div class="search-result-image"> 
+                        <img src="${imageUrl}" alt="${product.name}" onerror="this.src='${assetsUrl}img/solo.webp'">
+                    </div>
+                    <div class="search-result-info">
+                        <h4>${product.name}</h4>
+                        <p class="search-result-price">Rs: ${product.price}</p>
+                    </div>
+                </a>
+            </li>
+        `;
+    });
+    html += '</ul>';
+    
+    mobileSearchResults.innerHTML = html;
+}
+
+function closeMobileSearchModal() {
+    if (mobileSearchModal) {
+        mobileSearchModal.classList.remove('active');
+        mobileSearchOverlay.classList.remove('active');
+        mobileSearchInput.value = '';
+        mobileSearchResults.innerHTML = '';
+    }
+}
+
 

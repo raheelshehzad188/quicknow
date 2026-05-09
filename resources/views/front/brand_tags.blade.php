@@ -53,9 +53,10 @@ use App\Models\Admins\Rating;
           <div>
               <h4>ShopPakistan.Com.PK: Online Shopping In Pakistan</h4>
              <p>
-<a href="https://shoppakistan.pk/">Shop Pakistan</a> Is Selling Wide Range Of Food Supplements, Health & Beauty, Men's Fashion, Women's Fashion, Household Appliances, <a href="https://shopii.com.pk/collections/malaysian-royal-honey">Malaysian Royal Honey</a>, 
+<?php $setting = DB::table('setting')->first(); ?>
+<a href="https://shoppakistan.pk/">{{ $setting->site_title ?? 'Shop Pakistan' }}</a> Is Selling Wide Range Of Food Supplements, Health & Beauty, Men's Fashion, Women's Fashion, Household Appliances, <a href="https://shopii.com.pk/collections/malaysian-royal-honey">Malaysian Royal Honey</a>, 
 Weight Loss & Personal Care Products. We Import From Amazon, eBay, Alibaba, Ali Express & Wallmart On Customer Demand We Offer Cash On Delivery Service All Over Pakistan 
-Shop With Us For Quality Products <a href="https://shopii.com.pk/">Online Shopping In Pakistan</a>. Shop Pakistan Offer Satisfaction Guarantees, 
+Shop With Us For Quality Products <a href="https://shopii.com.pk/">Online Shopping In Pakistan</a>. {{ $setting->site_title ?? 'Shop Pakistan' }} Offer Satisfaction Guarantees, 
 Which state that if a customer is not satisfied with their purchase for any reason, they can return it for a full refund, Risk Free Shopping Biomanix Capsules Price In Dubai . 
 Products Quality Is Our Assurance 100% Risk Free Online Shopping Service Buy <a href="https://shopii.com.pk/products/kamagra-oral-jelly">Kamagra 100mg Oral Jelly Price In Pakistan</a>
 </p>

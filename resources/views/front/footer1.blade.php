@@ -110,7 +110,8 @@ $cate = DB::table('categories')->get();
         <div class="row border-top mx-xl-5 py-4" style="border-color: rgba(256, 256, 256, .1) !important;">
             <div class="col-md-6 px-xl-0">
                 <p class="mb-md-0 text-center text-md-left text-secondary">
-                    © <a class="text-primary" href="{{ url('/'); }}">Shop Pakistan</a></a>. All Rights Reserved.
+                    <?php $setting = DB::table('setting')->first(); ?>
+                    © <a class="text-primary" href="{{ url('/'); }}">{{ $setting->site_title ?? 'Shop Pakistan' }}</a></a>. All Rights Reserved.
                 </p>
             </div>
             <div class="col-md-6 px-xl-0 text-center text-md-right">

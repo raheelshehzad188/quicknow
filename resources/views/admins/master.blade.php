@@ -93,7 +93,7 @@
                         <a href="#"><i class="fa fa-edit"></i> <span class="nav-label">Pages</span><span
                                 class="fa arrow"></span></a>
                         <ul class="nav nav-second-level collapse @yield('page_active_c1')">
-                            <li class="@yield('page_1_active')"><a href="{{route('admins.page_form')}}">Add Page</a></li>
+                            <li class="@yield('page_1_active')"><a href="{{ Route::has('admins.page_form') ? route('admins.page_form') : url('/admin/page_form') }}">Add Page</a></li>
                              
                             <li class="@yield('page_2_active')"><a href="{{route('admins.pages')}}">All Page</a></li>
                             <!--<li class="@yield('page_1_active')"><a href="{{route('admins.page_form')}}?section=1">Add Section</a></li>-->

@@ -11,3 +11,26 @@ if (!function_exists('custom_assets')) {
         return env('IMG_URL') . $path;
     }
 }
+if (!function_exists('env')) {
+    /**
+     * Safe env access (works with config:cache)
+     */
+    function env($key, $default = null)
+    {
+        // Convert ENV_KEY to config.key format
+        $configKey = strtolower(str_replace('_', '.', $key));
+
+        // First try direct config
+        if (config()->has($configKey)) {
+            return config($configKey);
+        }
+
+        // Try app.* namespace
+        if (config()->has('app.' . strtolower($key))) {
+            return config('app.' . strtolower($key));
+        }
+
+        return $default;
+    }
+}
+

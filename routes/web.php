@@ -16,8 +16,10 @@ use App\Http\Controllers\Front;
 */
 
 Route::get('/clear-cache', function() {
-     \Artisan::call('config:cache'); 
-     return 'Application cache cleared';
+     \Artisan::call('route:clear');
+     \Artisan::call('config:clear');
+     \Artisan::call('cache:clear');
+     return 'Route, config and cache cleared';
  });
 Route::get('/test',[Admins\AdminController::class,'test'])->name('test');
 
@@ -55,7 +57,51 @@ Route::get('/theme2/js/{file}', function($file) {
     abort(404);
 });
 
+// Theme4 assets routes
+Route::get('/theme4/css/{file}', function($file) {
+    $path = public_path("theme4/css/{$file}");
+    if (file_exists($path)) {
+        return response()->file($path, ['Content-Type' => 'text/css']);
+    }
+    abort(404);
+});
+Route::get('/theme4/js/{file}', function($file) {
+    $path = public_path("theme4/js/{$file}");
+    if (file_exists($path)) {
+        return response()->file($path, ['Content-Type' => 'application/javascript']);
+    }
+    abort(404);
+});
 
+// Allow /public/theme2/ and /public/theme4/ URLs (e.g. when assets_url has "public" in path)
+Route::get('/public/theme2/css/{file}', function($file) {
+    $path = public_path("theme2/css/{$file}");
+    if (file_exists($path)) {
+        return response()->file($path, ['Content-Type' => 'text/css']);
+    }
+    abort(404);
+});
+Route::get('/public/theme2/js/{file}', function($file) {
+    $path = public_path("theme2/js/{$file}");
+    if (file_exists($path)) {
+        return response()->file($path, ['Content-Type' => 'application/javascript']);
+    }
+    abort(404);
+});
+Route::get('/public/theme4/css/{file}', function($file) {
+    $path = public_path("theme4/css/{$file}");
+    if (file_exists($path)) {
+        return response()->file($path, ['Content-Type' => 'text/css']);
+    }
+    abort(404);
+});
+Route::get('/public/theme4/js/{file}', function($file) {
+    $path = public_path("theme4/js/{$file}");
+    if (file_exists($path)) {
+        return response()->file($path, ['Content-Type' => 'application/javascript']);
+    }
+    abort(404);
+});
 
 Route::get('/wishlist/{id}',[Front\FrontController::class,'wishlist']); 
 Route::get('/my_wishlist',[Front\FrontController::class,'my_wishlist']); 

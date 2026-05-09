@@ -378,7 +378,7 @@ class AdminController extends Controller
                 $category->created_at=Date('Y-m-d h:i:s');
                 $category->name=$request->name;
                 $category->status=$request->status;
-                 $category->short_description=$request->short_description;
+                $category->short_description=$request->short_description;
                 $category->sort=$request->sort ?? 0;
                 $category->home_sort=$request->home_sort ?? 0;
                 $category->sort=$request->sort ?? 0;
@@ -860,8 +860,9 @@ $ret = $query->offset($start)->limit($length)->get();
     }
     
     public function setting(Request $request,$id=0,$delete=null){
+        
         if ($request->isMethod('post')){
-            // dd($request);
+            
             if($request->hidden_id){
                 
                 $setting=Setting::find($request->hidden_id);
@@ -1044,6 +1045,7 @@ $ret = $query->offset($start)->limit($length)->get();
                 $setting->phonetwo=$request->phonetwo;
                 $setting->instagram=$request->instagram;
                 $setting->dir_link=$request->dir_link;
+                $setting->welcome_message=$request->welcome_message;
                 $setting->facebook=$request->facebook;
                 $setting->twitter=$request->twitter;
                 $setting->tiktok=$request->tiktok;
@@ -1203,7 +1205,7 @@ $ret = $query->offset($start)->limit($length)->get();
                 if ($request->hasFile('image_one')) {
                     $file = $request->file('image_one');
                     $extension = $file->getClientOriginalExtension();
-                    $extension = 'avif';
+                    $extension = 'webp';
                     // Rename the file with a new extension
                     $name = time() . '.' . $extension;
                 
@@ -1253,7 +1255,7 @@ $ret = $query->offset($start)->limit($length)->get();
                  if ($request->hasFile('gallary_images')) {
                 foreach ($request->file('gallary_images') as $image) {
                     $extension = $image->getClientOriginalExtension();
-                    $extension = 'avif';
+                    $extension = 'webp';
                     
                     $filename = time() . '_' . uniqid() . '.' . $extension;
                     
@@ -1358,7 +1360,7 @@ $ret = $query->offset($start)->limit($length)->get();
                 if ($request->hasFile('gallary_images')) {
                 foreach ($request->file('gallary_images') as $image) {
                     $extension = $image->getClientOriginalExtension();
-                    $extension = 'avif';
+                    $extension = 'webp';
                     
                     $filename = time() . '_' . uniqid() . '.' . $extension;
                     
@@ -1626,7 +1628,6 @@ $ret = $query->offset($start)->limit($length)->get();
     public function gallery_delete($id)
     {
         $gallery=Gallerie::find($id);
-        dd($gallery);
         
         $img_one=public_path().'/'.$gallery->photo;
         if(\File::exists($img_one)){

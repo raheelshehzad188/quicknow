@@ -33,8 +33,8 @@ use App\Models\Admins\Category;
 
         <script>
         (function() {
-            let currentPage = {{ $products->currentPage() }};
-            let lastPage = {{ $products->lastPage() }};
+            let currentPage = {{ 1 }};
+            let lastPage = {{ $last }};
             let isLoading = false;
             const container = document.getElementById('products-container');
             const loadingIndicator = document.getElementById('loading-indicator');

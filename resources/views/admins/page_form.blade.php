@@ -96,6 +96,27 @@
                                 </textarea>
                             </div>
                         </div>
+                        
+                        <div class="form-group"><label class="col-sm-12 control-label">Meta Title (SEO):</label>
+                            <div class="col-sm-12">
+                                <input type="text" value="<?php echo isset($edit->seo_title) ? htmlspecialchars($edit->seo_title) : null; ?>" class="form-control" name="seo_title" placeholder="Enter meta title for SEO">
+                                <small class="text-muted">This will be used as the page title in search engines</small>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group"><label class="col-sm-12 control-label">Meta Description (SEO):</label>
+                            <div class="col-sm-12">
+                                <textarea class="form-control" name="seo_description" rows="3" placeholder="Enter meta description for SEO"><?php echo isset($edit->seo_description) ? htmlspecialchars($edit->seo_description) : null; ?></textarea>
+                                <small class="text-muted">Brief description of the page (recommended: 150-160 characters)</small>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group"><label class="col-sm-12 control-label">Meta Keywords (SEO):</label>
+                            <div class="col-sm-12">
+                                <input type="text" value="<?php echo isset($edit->seo_keywords) ? htmlspecialchars($edit->seo_keywords) : null; ?>" class="form-control" name="seo_keywords" placeholder="Enter keywords separated by commas">
+                                <small class="text-muted">Enter relevant keywords separated by commas (e.g., keyword1, keyword2, keyword3)</small>
+                            </div>
+                        </div>
                        
                        
                        
